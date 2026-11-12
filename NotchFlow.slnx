@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="NotchFlow.Tests/NotchFlow.Tests.csproj" />
+  <Project Path="NotchFlow/NotchFlow.csproj" />
+</Solution>

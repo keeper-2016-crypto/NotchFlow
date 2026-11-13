@@ -1,7 +1,7 @@
 <UserControl x:Class="NotchFlow.Views.NotesView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
  <UserControl.Resources><Style TargetType="TextBox"><Setter Property="Background" Value="#1B1B1E"/><Setter Property="Foreground" Value="#EFEDE8"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="9"/><Setter Property="CaretBrush" Value="White"/><Setter Property="SelectionBrush" Value="#556577"/></Style></UserControl.Resources>
  <Grid Margin="22,7,22,18"><Grid.RowDefinitions><RowDefinition Height="30"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-  <DockPanel><Button Content="+" Click="AddNote" DockPanel.Dock="Right" ToolTip="Создать заметку" IsEnabled="{Binding CanEdit}" Width="30" Padding="0" Margin="0"/><TextBlock Text="Заметки" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/></DockPanel>
+  <DockPanel><Button Content="+" Click="AddNote" DockPanel.Dock="Right" IsEnabled="{Binding CanEdit}" Width="30" Padding="0" Margin="0"/><TextBlock Text="Заметки" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/></DockPanel>
   <Grid x:Name="NoteContent" Grid.Row="1" Margin="0,8,0,8">
    <Grid><Grid.Style><Style TargetType="Grid"><Style.Triggers><DataTrigger Binding="{Binding EditingNote}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Grid.Style>
     <TextBlock Text="Пока нет заметок. Нажмите +, чтобы создать первую." TextWrapping="Wrap" Foreground="#929298" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding NoNotes}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
@@ -9,8 +9,8 @@
    </Grid>
    <Grid><Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding EditingNote}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Grid.Style><Grid.RowDefinitions><RowDefinition Height="27"/><RowDefinition Height="36"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <DockPanel><Button Content="Удалить" Click="DeleteNote" IsEnabled="{Binding CanEdit}" DockPanel.Dock="Right" Padding="7,3" Margin="0" FontSize="10"/><Button Content="‹  Все заметки" Click="Back" HorizontalAlignment="Left" Padding="0" Background="Transparent" FontSize="11"/></DockPanel>
-    <TextBox Grid.Row="1" Text="{Binding SelectedNote.Title, UpdateSourceTrigger=PropertyChanged}" FontWeight="SemiBold" IsEnabled="{Binding CanEdit}" ToolTip="Заголовок"/>
-    <TextBox Grid.Row="2" Text="{Binding SelectedNote.Text, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEdit}" AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,7,0,5" ToolTip="Текст заметки"/>
+    <TextBox Grid.Row="1" Text="{Binding SelectedNote.Title, UpdateSourceTrigger=PropertyChanged}" FontWeight="SemiBold" IsEnabled="{Binding CanEdit}"/>
+    <TextBox Grid.Row="2" Text="{Binding SelectedNote.Text, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEdit}" AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,7,0,5"/>
     <TextBlock Grid.Row="3" Text="{Binding NoteDates}" FontSize="9" Foreground="#777780" TextWrapping="Wrap"/>
    </Grid>
   </Grid>

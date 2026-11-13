@@ -9,6 +9,15 @@ namespace NotchFlow.Services;
 public static class Log
 {
     public static readonly string DirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NotchFlow");
+    public static void Collapse(string reason,bool blocked)
+    {
+        try {
+            Directory.CreateDirectory(DirectoryPath);
+            var path=Path.Combine(DirectoryPath,"interactions.log");
+            if(File.Exists(path)&&new FileInfo(path).Length>500000)File.Move(path,path+".old",true);
+            File.AppendAllText(path,$"{DateTimeOffset.Now:O} collapse source={reason} blocked={blocked}\n");
+        } catch { }
+    }
     public static void Error(Exception ex)
     {
         try

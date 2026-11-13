@@ -17,9 +17,10 @@ public sealed class IslandViewModel : ObservableObject,IDisposable
     readonly DispatcherTimer pauseTimer=new();
     readonly DispatcherTimer clockTimer=new();
     MediaSnapshot? snapshot;bool enabled=true,useClock;string selectedTab="Music";
-    public string Title=>!enabled?"Медиаплеер отключён":snapshot?.Title is {Length:>0} t?t:"Ничего не воспроизводится";
+    public string Title=>!enabled?"Медиаплеер отключён":snapshot?.Title is {Length:>0} t?t:snapshot!=null?"Без названия":"Ничего не воспроизводится";
     public string Artist=>!enabled?"Включите его в настройках":snapshot?.Artist??"Запустите музыку или видео";
     public ImageSource? Artwork=>enabled?snapshot?.Artwork:null;
+    public bool HasMediaSession=>enabled&&snapshot!=null;
     public bool Playing=>enabled&&snapshot?.Playing==true;
     public string PlayGlyph=>Playing?"❚❚":"▶";
     public bool CanToggle=>enabled&&snapshot!=null&&(snapshot.Playing?snapshot.CanPause:snapshot.CanPlay);

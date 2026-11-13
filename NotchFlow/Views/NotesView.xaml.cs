@@ -15,5 +15,5 @@ public partial class NotesView : UserControl
  void AddNote(object sender,RoutedEventArgs e)=>(DataContext as PersonalViewModel)?.AddNote();
  void Back(object sender,RoutedEventArgs e){if(DataContext is PersonalViewModel vm){vm.Flush();vm.SelectedNote=null;}}
  void Save(object sender,RoutedEventArgs e)=>(DataContext as PersonalViewModel)?.Flush();
- void DeleteNote(object sender,RoutedEventArgs e){if(DataContext is PersonalViewModel vm&&vm.SelectedNote!=null&&MessageBox.Show(Window.GetWindow(this),"Удалить выбранную заметку?","NotchFlow",MessageBoxButton.YesNo,MessageBoxImage.Question)==MessageBoxResult.Yes)vm.DeleteSelectedNote();}
+ void DeleteNote(object sender,RoutedEventArgs e){if(DataContext is PersonalViewModel vm && vm.SelectedNote is {} note && Window.GetWindow(this) is IslandWindow window)window.ConfirmDeletion("Delete note?",()=>{if(vm.SelectedNote==note)vm.DeleteSelectedNote();});}
 }

@@ -20,13 +20,14 @@ public sealed class MediaService : IDisposable
     public void SelectSource(GlobalSystemMediaTransportControlsSession value){if(observed.ContainsKey(value)){activity[value]=DateTimeOffset.UtcNow;Choose(value,"manual");}}
     void Choose(GlobalSystemMediaTransportControlsSession? next,string reason){
         if(next==session){PublishTimeline();return;}
-        generation++;session=next;sourceEpoch++;trackEpoch=0;title=artist="";artwork=null;
+        generation++;session=next;sourceEpoch++;trackEpoch=0;title=artist="";artwork=null;metadataReady=false;
         try{Directory.CreateDirectory(Log.DirectoryPath);var path=Path.Combine(Log.DirectoryPath,"media-selection.log");if(File.Exists(path)&&new FileInfo(path).Length>1048576)File.Move(path,path+".old",true);File.AppendAllText(path,$"{DateTimeOffset.UtcNow:O} switch={reason} id={sourceEpoch} source={next?.SourceAppUserModelId} activity={(next!=null&&activity.TryGetValue(next,out var time)?time.ToString("O"):"unknown")}\n");}catch{}
         PublishTimeline();RefreshMetadata();
     }
     bool disposed;
     int generation, sourceEpoch, trackEpoch;
     string title="", artist="";
+    bool metadataReady;
     ImageSource? artwork;
     public event Action<MediaSnapshot?>? Changed;
     public event Action<string>? Failed;
@@ -69,6 +70,7 @@ public sealed class MediaService : IDisposable
     {
         if(disposed)return;
         if(session==null){Changed?.Invoke(null);return;}
+        if(!metadataReady)return;
         try
         {
             var playback=session.GetPlaybackInfo();var timeline=session.GetTimelineProperties();var c=playback.Controls;
@@ -77,7 +79,7 @@ public sealed class MediaService : IDisposable
                 timeline.EndTime-timeline.StartTime,timeline.LastUpdatedTime,playback.PlaybackRate??1,
                 sourceEpoch.ToString(),trackEpoch.ToString()));
         }
-        catch(Exception ex){Log.Error(ex);Changed?.Invoke(null);Failed?.Invoke("Не удалось прочитать медиасессию");}
+        catch(Exception ex){Log.Error(ex);Failed?.Invoke("Не удалось прочитать медиасессию");}
     }
     async void RefreshMetadata()
     {
@@ -86,8 +88,12 @@ public sealed class MediaService : IDisposable
         {
             var properties=await current.TryGetMediaPropertiesAsync();
             if(disposed||version!=generation||current!=session)return;
+                        // Some players publish empty metadata between tracks. Keep the last complete presentation.
+            if(string.IsNullOrWhiteSpace(properties.Title) && metadataReady)return;
+            metadataReady=true;
             if(title!=properties.Title||artist!=properties.Artist)trackEpoch++;
-            title=properties.Title;artist=properties.Artist;artwork=null;PublishTimeline();
+            title=properties.Title;artist=properties.Artist;PublishTimeline();
+            if(properties.Thumbnail==null){artwork=null;PublishTimeline();return;}
             if(properties.Thumbnail!=null)
             {
                 try

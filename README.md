@@ -14,9 +14,21 @@
 - **Notes and tasks** stored locally alongside your settings in `%LOCALAPPDATA%\NotchFlow`.
 - **Customizable layout** with floating and top-edge styles, scaling, animation settings, monitor selection, and a system tray menu.
 
-## Screenshot
+## Screenshots
 
-![NotchFlow weather panel showing sample forecast data](docs/screenshots/weather.png)
+Application screenshots with sample media, notes, tasks, and forecast data.
+
+| Music · Equalizer | Music · Album Glow |
+| :---: | :---: |
+| ![Music player with equalizer](docs/screenshots/media-equalizer.png) | ![Music player with Album Glow](docs/screenshots/media-album-glow.png) |
+
+| Notes | Tasks |
+| :---: | :---: |
+| ![Notes editor with sample text](docs/screenshots/notes.png) | ![Task list with sample data](docs/screenshots/tasks.png) |
+
+**Weather**
+
+![Weather panel with sample forecast data](docs/screenshots/weather.png)
 
 ## System requirements
 

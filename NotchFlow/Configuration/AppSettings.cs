@@ -33,6 +33,13 @@ public sealed class AppSettings
  public string AccentMode {get;set;} = "Default White";
  public string CustomAccentColor {get;set;} = "#FFFFFF";
  public string AlbumArtStyle {get;set;} = "Clean";
+ public bool GlassBackdropBlur {get;set;} = true;
+ public double GlassOpacity {get;set;} = .88;
+ public string GlassTint {get;set;} = "Dark";
+ public string GlassCustomTint {get;set;} = "#121216";
+ public string GlassReflection {get;set;} = "Medium";
+ public bool GlassEdgeHighlight {get;set;} = true;
+ public bool GlassDynamicLighting {get;set;} = true;
  public string BackgroundEffect {get;set;} = "Solid";
  public double TintIntensity {get;set;} = .65;
  public double BorderGlow {get;set;} = .25;
@@ -41,6 +48,11 @@ public sealed class AppSettings
  public bool AnimateOnlyWhilePlaying {get;set;} = true;
  public AppSettings Clone() => (AppSettings)MemberwiseClone();
  public void Validate() {
+  if(!double.IsFinite(GlassOpacity))throw new ArgumentException("Invalid glass opacity.");
+  GlassOpacity=Math.Clamp(GlassOpacity,0,1);
+  if(GlassTint is not ("Dark" or "Neutral" or "Album Color" or "Custom"))GlassTint="Dark";
+  if(GlassReflection is not ("Off" or "Low" or "Medium" or "High"))GlassReflection="Medium";
+  if(GlassCustomTint==null||!System.Text.RegularExpressions.Regex.IsMatch(GlassCustomTint,@"\A#[0-9a-fA-F]{6}\z"))throw new ArgumentException("Glass tint must be a HEX color such as #121216.");
   if(RibbonColorMode is not ("Pink / Purple / Blue" or "Album Colors" or "Custom Color"))RibbonColorMode="Pink / Purple / Blue";
   if(RibbonGlow is not ("Low" or "Medium" or "High"))RibbonGlow="Medium";
   if(RibbonSensitivity is not ("Low" or "Normal" or "High"))RibbonSensitivity="Normal";

@@ -11,6 +11,7 @@ using NotchFlow.Views;
 internal static class Program
 {
  [STAThread] static int Main() {
+  if(Environment.GetEnvironmentVariable("NOTCHFLOW_BACKDROP_PROBE")=="1"){BackdropProbe.Run();return 0;}
   var directory=Path.Combine(Environment.CurrentDirectory,"work","NotchFlow-test-"+Guid.NewGuid().ToString("N"));
   Environment.SetEnvironmentVariable("NOTCHFLOW_DATA_DIR",directory);
   try {
@@ -20,7 +21,7 @@ internal static class Program
    store.Save(new AppSettings{OffsetX=-40,Monitor="TEST",Animations=false});var loaded=store.Load();Check(loaded.OffsetX==-40&&loaded.Monitor=="TEST"&&!loaded.Animations,"JSON round trip");
    File.WriteAllText(Path.Combine(directory,"settings.json"),"{invalid json");Check(store.Load().Scale==1,"Corrupt settings recovery");Check(Directory.GetFiles(directory,"*.corrupt-*").Length==1,"Corrupt file backup");
    Stage3Tests.Core(directory);AudioTests.Run();
-   var app=new Application{ShutdownMode=ShutdownMode.OnExplicitShutdown};app.Resources.MergedDictionaries.Add(new ResourceDictionary{Source=new Uri("/NotchFlow;component/Themes/Dark.xaml",UriKind.Relative)});RibbonTests.Run(directory);VisualTests.Run(directory);Stage3Tests.Desktop(directory);using var media=new MediaService();var vm=new IslandViewModel(media,dataDirectory:directory);Check(vm.Title=="Ничего не воспроизводится"&&!vm.CanToggle&&!vm.CanNext,"Empty media state");
+   var app=new Application{ShutdownMode=ShutdownMode.OnExplicitShutdown};app.Resources.MergedDictionaries.Add(new ResourceDictionary{Source=new Uri("/NotchFlow;component/Themes/Dark.xaml",UriKind.Relative)});GlassTests.Run(directory);RibbonTests.Run(directory);VisualTests.Run(directory);Stage3Tests.Desktop(directory);using var media=new MediaService();var vm=new IslandViewModel(media,dataDirectory:directory);Check(vm.Title=="Ничего не воспроизводится"&&!vm.CanToggle&&!vm.CanNext,"Empty media state");
    var window=new IslandWindow(vm,new AppSettings{Animations=false});window.Show();window.UpdateLayout();window.Reveal();window.UpdateLayout();Check(window.IsVisible,"WPF window and bindings load"); Capture(window,"expanded-100.png");
    window.ShowVolume(45,false);window.UpdateLayout();Check(((Grid)window.FindName("Expanded")).Visibility==Visibility.Visible,"Late volume notification preserves expanded player");
    window.Apply(new AppSettings{Animations=false,Scale=1.5,MediaEnabled=false,Monitor="DISCONNECTED",VolumeEnabled=false});window.UpdateLayout();Check(Math.Abs(window.Width-660)<.01&&vm.Title=="Медиаплеер отключён","Apply scale, disabled media and monitor fallback");Capture(window,"expanded-150.png");window.Close();

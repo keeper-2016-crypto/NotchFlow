@@ -26,11 +26,11 @@
 
 ## Releases
 
-The installer is distributed as a GitHub Release asset. Download `NotchFlow-Setup.exe` from the release, close any running instance using **Exit** in the system tray, and run the installer. The setup installs for the current Windows user. Launch **NotchFlow** from the Start menu.
+The installer is distributed as a GitHub Release asset. Download `NotchFlow-0.3.4-Setup.exe` from the release, close any running instance using **Exit** in the system tray, and run the installer. The setup installs for the current Windows user. Launch **NotchFlow** from the Start menu.
 
-**Installer download:** pending the first GitHub Release.
+**Installer download:** [NotchFlow 0.3.4 for Windows x64](https://github.com/keeper-2016-crypto/NotchFlow/releases/download/v0.3.4/NotchFlow-0.3.4-Setup.exe).
 
-<!-- After publishing the release, replace the pending line with [Download NotchFlow-Setup.exe](https://github.com/OWNER/REPOSITORY/releases/latest/download/NotchFlow-Setup.exe). -->
+
 
 ## Build from source
 

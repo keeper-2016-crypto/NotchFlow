@@ -99,7 +99,9 @@ public sealed class MediaEffects : FrameworkElement
         {
             int columns=expanded?16:9, rows=expanded?6:5;
             double width=expanded?116:51,height=expanded?22:20;
-            double left=expanded?258:w-width-12,top=expanded?38:(h-height)/2;
+            // Expanded content is 400 DIPs wide and centered in both capsule and Notch.
+            // The play/pause button center is x=322; account for the final 2-DIP bar gap.
+            double left=expanded?(w-400)/2+322-(width-2)/2:w-width-12,top=expanded?38:(h-height)/2;
             double step=width/columns, rowHeight=height/rows;
             for(int column=0;column<columns;column++)
             {

@@ -41,7 +41,7 @@ internal static class GlassTests
     using var output=System.IO.File.Create(System.IO.Path.Combine(directory,$"{notch}-{background}-{scale}.png"));encoder.Save(output);
    }
   }
-  foreach(var mode in new[]{"Classic","Album Glow","Breathing Island","Equalizer","Neon Ribbon"})
+  foreach(var mode in new[]{"Classic","Equalizer"})
   {settings.MediaVisualizer=mode;window.Apply(settings);window.UpdateLayout();Check(layer.Visibility==Visibility.Visible,"Glass compatible with "+mode);}
   window.Close();
   foreach(bool notch in new[]{false,true})StableBackdropDuringTransition(root,notch);

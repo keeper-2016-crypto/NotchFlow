@@ -42,7 +42,7 @@
     </Grid>
     <Grid x:Name="Toast" Width="260" Height="40" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed" Opacity="0" Margin="0"><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition/><ColumnDefinition Width="72"/></Grid.ColumnDefinitions><Path Data="M1,8 L5,8 11,3 11,21 5,16 1,16 Z M15,8 Q20,12 15,16 M18,4 Q27,12 18,20" Stroke="#EFEDE8" StrokeThickness="1.6" Width="17" Height="17" Stretch="Uniform" Margin="8,0,0,0"/><TextBlock x:Name="ToastText" Grid.Column="1" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis"/><ProgressBar x:Name="VolumeBar" Grid.Column="2" Maximum="100" Height="3" Margin="0,0,14,0" Foreground="#EFEDE8" Background="#363638" BorderThickness="0" VerticalAlignment="Center"/></Grid>
    </Grid>
-  </local:IslandSurface><local:NeonRibbon x:Name="RibbonLayer" Width="{Binding ActualWidth, ElementName=Capsule}" Height="{Binding ActualHeight, ElementName=Capsule}" LayoutTransform="{Binding LayoutTransform, ElementName=Capsule}" Margin="{Binding Margin, ElementName=Capsule}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+  </local:IslandSurface>
  </Grid>
 </Window>
 

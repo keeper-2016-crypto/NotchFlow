@@ -1,0 +1,6 @@
+<Window x:Class="NotchFlow.Views.UpdateWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Обновление NotchFlow" Width="490" Height="490" MinWidth="400" MinHeight="360" Background="#0B0B0C" WindowStartupLocation="CenterScreen" ToolTipService.IsEnabled="False">
+ <DockPanel Margin="24">
+  <StackPanel DockPanel.Dock="Bottom"><TextBlock x:Name="StatusText" TextWrapping="Wrap" Margin="0,12"/><ProgressBar x:Name="Progress" Height="5" Maximum="100" Foreground="#A999F7" Visibility="Collapsed"/><TextBlock x:Name="ProgressText" Foreground="#AAAAAF" Margin="0,8"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button x:Name="LaterButton" Content="Позже" Click="LaterClick"/><Button x:Name="ActionButton" Content="Обновить сейчас" Click="ActionClick" Background="#51448B"/></StackPanel></StackPanel>
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel><TextBlock Text="Доступно обновление NotchFlow" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock x:Name="VersionsText" Margin="0,16" TextWrapping="Wrap"/><TextBlock Text="Что нового" FontSize="17" Margin="0,8"/><TextBlock x:Name="NotesText" TextWrapping="Wrap" Foreground="#C5C5CA"/></StackPanel></ScrollViewer>
+ </DockPanel>
+</Window>

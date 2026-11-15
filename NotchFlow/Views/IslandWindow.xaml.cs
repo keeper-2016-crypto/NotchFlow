@@ -41,7 +41,7 @@ public partial class IslandWindow : Window
         Capsule.MouseEnter+=(_,_)=>GlassLayer.Hover(true);
         Capsule.MouseLeave+=(_,_)=>GlassLayer.Hover(false);
         Capsule.AddHandler(UIElement.PreviewMouseDownEvent,new MouseButtonEventHandler((_,_)=>GlassLayer.Press()),true);
-        RibbonLayer.Surface=Capsule;audioAnalysis.Changed+=RibbonLayer.AcceptAudio;EffectsLayer.Surface=Capsule;audioAnalysis.Changed+=EffectsLayer.AcceptAudio;
+        EffectsLayer.Surface=Capsule;audioAnalysis.Changed+=EffectsLayer.AcceptAudio;
         interactions.Changed+=InteractionChanged;
         SystemVolume.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent,new MouseButtonEventHandler(BeginVolumeDrag),true);
         SystemVolume.PreviewMouseMove+=MoveVolumeDrag;
@@ -80,9 +80,8 @@ public partial class IslandWindow : Window
         double fittedScale = Math.Min(settings.Scale, WindowService.MaximumScale(settings, 440, 432));
         Width = 440 * fittedScale; Height = 432 * fittedScale;
         Capsule.LayoutTransform = new ScaleTransform(fittedScale, fittedScale);
-        Capsule.Margin=new Thickness(0,settings.MediaVisualizer=="Neon Ribbon"&&!settings.AttachToTop?10*fittedScale:0,0,0);
+        Capsule.Margin=new Thickness(0,0,0,0);
         Capsule.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(settings.CapsuleColor)) { Opacity = settings.BackgroundEffect is "Acrylic Glass" or "Liquid Glass" ? 1 : settings.Opacity };
-        if(settings.MediaVisualizer=="Neon Ribbon")Capsule.Background=Brushes.Black;
         if(settings.BackgroundEffect=="Liquid Glass")Capsule.Background=Brushes.Transparent;
         Capsule.Effect = settings.Shadow ? new DropShadowEffect { BlurRadius = 12, ShadowDepth = 3, Opacity = .22 } : null;
         Topmost = settings.AlwaysOnTop; vm.Personal.AnimationsEnabled = settings.Animations && !settings.ReduceMotion; vm.Weather.Configure(settings.WeatherCity); vm.SetEnabled(settings.MediaEnabled);
@@ -112,7 +111,7 @@ public partial class IslandWindow : Window
     void UpdateClip()
     {
         if (ClipRoot == null) return;
-        RibbonLayer?.InvalidateVisual();GlassLayer?.InvalidateVisual();
+        GlassLayer?.InvalidateVisual();
         double r = Math.Min(Capsule.CornerRadius.TopLeft, Capsule.ActualHeight / 2);
         ClipRoot.Clip = Capsule.Outline(Math.Max(0, Capsule.ActualWidth - 1.4), Math.Max(0, Capsule.ActualHeight - 1.4));
     }
@@ -258,8 +257,6 @@ public partial class IslandWindow : Window
         var brush = new SolidColorBrush(AlbumColor.Accent(settings,AlbumColor.Palette(vm.Artwork)));
         ArtistText.Foreground = brush; ElapsedText.Foreground=brush; RemainingText.Foreground=brush; SpeakerPath.Stroke=brush; ProgressWave.Accent = brush; PlayIcon.Fill=brush;
         GlassLayer.Configure(settings,vm.Artwork);
-        RibbonLayer.Configure(settings,vm.Artwork,vm.Playing);
-        EffectsLayer.Visibility=settings.MediaVisualizer=="Neon Ribbon"?Visibility.Collapsed:Visibility.Visible;
         EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
         foreach (var bar in new[] { Bar0, Bar1, Bar2, Bar3 }) bar.Background = brush;
     }
@@ -267,8 +264,6 @@ public partial class IslandWindow : Window
     {
         if (ProgressWave == null) return;
         GlassLayer.Configure(settings,vm.Artwork);
-        RibbonLayer.Configure(settings,vm.Artwork,vm.Playing);
-        EffectsLayer.Visibility=settings.MediaVisualizer=="Neon Ribbon"?Visibility.Collapsed:Visibility.Visible;
         EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
         Meter.Visibility=settings.MediaVisualizer=="Classic"?Visibility.Visible:Visibility.Collapsed;
         ProgressWave.SetMotion(vm.Playing && settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation && settings.MediaVisualizer=="Classic" && expanded && !showingToast && vm.SelectedTab == "Music");
@@ -284,7 +279,7 @@ public partial class IslandWindow : Window
     protected override void OnClosing(CancelEventArgs e) { if(!vm.Personal.Flush()) { e.Cancel=true; MessageBox.Show(this, vm.Personal.Status + "\nПовторите сохранение перед выходом.", "NotchFlow"); } base.OnClosing(e); }
     protected override void OnClosed(EventArgs e)
     {
-        closing = true;LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=RibbonLayer.AcceptAudio;audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
+        closing = true;LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
         if (volume != null) volume.StateChanged -= VolumeStateChanged;
         vm.PropertyChanged -= MediaChanged; SystemEvents.DisplaySettingsChanged -= DisplayChanged;
         vm.Dispose(); base.OnClosed(e);

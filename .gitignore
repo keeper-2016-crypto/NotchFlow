@@ -59,6 +59,8 @@ secrets.json
 *.p12
 *.snk
 *.pem
+!NotchFlow/Assets/UpdatePublicKey.pem
+*.dpapi
 *.key
 
 # Internal development records and legacy packaging
@@ -69,3 +71,5 @@ secrets.json
 /docs/VALIDATION.md
 /scripts/GrechaIsland.iss
 /NotchFlow/Assets/GrechaIsland.ico
+
+!/NotchFlow/Assets/UpdatePublicKey.pem

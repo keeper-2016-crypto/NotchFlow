@@ -1,11 +1,19 @@
-﻿[Setup]
+#ifndef ReleaseVersion
+ #define ReleaseVersion "0.3.6"
+#endif
+#ifndef PayloadDir
+ #define PayloadDir "..\dist\release-0_3_6\Portable"
+#endif
+[Setup]
 AppId={{F936FCEB-1C54-40C5-9E75-B5492A088745}
 AppName=NotchFlow
-AppVersion=0.3.4
+AppVersion={#ReleaseVersion}
 DefaultDirName={localappdata}\Programs\NotchFlow
 DisableDirPage=no
 DefaultGroupName=NotchFlow
 PrivilegesRequired=lowest
+UsePreviousAppDir=yes
+UsePreviousPrivileges=yes
 ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
 MinVersion=10.0.22621
@@ -25,13 +33,18 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "Ярлык на рабочем столе"; Flags: unchecked
 [Files]
-Source: "..\dist\release-0_3_4\Portable\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\NotchFlow"; Filename: "{app}\NotchFlow.exe"
 Name: "{autodesktop}\NotchFlow"; Filename: "{app}\NotchFlow.exe"; Tasks: desktopicon
 [Run]
-Filename: "{app}\NotchFlow.exe"; Description: "Запустить NotchFlow"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\NotchFlow.exe"; Description: "Запустить NotchFlow"; Flags: nowait postinstall skipifsilent; Check: not IsUpdateLaunch
+Filename: "{app}\NotchFlow.exe"; Flags: nowait; Check: IsUpdateLaunch
 [Code]
+function IsUpdateLaunch: Boolean;
+begin
+  Result := ExpandConstant('{param:UPDATEAPP|0}') <> '0';
+end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var OldValue: String;
 begin

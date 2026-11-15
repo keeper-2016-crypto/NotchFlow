@@ -1,0 +1,7 @@
+# Visualizer cleanup and color picker
+
+Only Classic and Equalizer remain. Album Glow, Breathing Island and Neon Ribbon implementations, subscriptions, controls, settings and exclusive tests were removed. Shared audio analysis, album palettes, background effects and album-art styles remain. Legacy removed mode strings normalize to Classic; unknown obsolete JSON properties are ignored without resetting unrelated settings.
+
+ColorField is shared by CustomAccentColor, GlassCustomTint and CapsuleColor. It opens an owned modal ColorPickerWindow with HSV saturation/value field, hue slider, current/new swatches, validated HEX and eight presets. Palette dragging captures the mouse; the hue slider uses WPF thumb capture. The modal window prevents the settings owner from closing during selection. The component is used in settings only, which already holds the island interaction lock. Picker confirmation updates the settings draft; the main Apply/Save action persists it. Cancel never updates the field.
+
+Release build succeeded. 164 current checks passed, including HSV round trips, HEX validation, migration from all three removed modes, confirm/cancel and three-color settings persistence, plus existing playback/pause/media regression checks. Count decreased because removed visualizer cases no longer apply. WPF-rendered picker screenshot inspected at .build/color-picker.png. GUI automation could not discover the standalone picker window; a real mouse-drag test and mixed-monitor DPI transitions remain manual checks. No installer or GitHub publication performed.

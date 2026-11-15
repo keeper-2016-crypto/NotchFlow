@@ -10,10 +10,8 @@ namespace NotchFlow.Controls;
 // Audio-reactive decoration; layout and input geometry stay fixed.
 public sealed class MediaEffects : FrameworkElement
 {
-    static readonly DependencyProperty EnergyProperty=DependencyProperty.Register("Energy",typeof(double),typeof(MediaEffects),new FrameworkPropertyMetadata(0d,FrameworkPropertyMetadataOptions.AffectsRender));
     readonly SolidColorBrush first=new(), second=new(), third=new(), accent=new();
     readonly LinearGradientBrush gradient=new();
-    readonly RadialGradientBrush glow=new();
     AppSettings settings=new();
     AlbumPalette palette=AlbumColor.Palette(null);
     ImageSource? artwork;
@@ -28,13 +26,11 @@ public sealed class MediaEffects : FrameworkElement
         gradient.GradientStops.Add(new GradientStop(Colors.Gray,0));
         gradient.GradientStops.Add(new GradientStop(Colors.Gray,.5));
         gradient.GradientStops.Add(new GradientStop(Colors.Gray,1));
-        glow.GradientStops.Add(new GradientStop(Colors.Gray,0));
-        glow.GradientStops.Add(new GradientStop(Colors.Transparent,1));
         foreach(var brush in new[]{first,second,third,accent})brush.Changed+=(_,_)=>InvalidateVisual();
         Unloaded+=(_,_)=>Stop();
         IsVisibleChanged+=(_,_)=>{if(!IsVisible)Stop();};
     }
-    void Stop(){moving=false;BeginAnimation(EnergyProperty,null);SetValue(EnergyProperty,0d);}
+    void Stop(){moving=false;}
     public void Configure(AppSettings value, ImageSource? image, bool isExpanded, bool isMusic, bool playing)
     {
         settings=value;expanded=isExpanded;music=isMusic;
@@ -49,8 +45,6 @@ public sealed class MediaEffects : FrameworkElement
     public void AcceptAudio(AudioFrame frame)
     {
         audio=moving?frame:AudioFrame.Silent;
-        double target=moving?Math.Max(audio.Bass,Math.Max(audio.Onset,audio.Rms*.35)):0;
-        BeginAnimation(EnergyProperty,new DoubleAnimation(target,TimeSpan.FromMilliseconds(target>(double)GetValue(EnergyProperty)?65:220)));
         InvalidateVisual();
     }
     static void Transition(SolidColorBrush brush,Color color,bool animate)
@@ -75,26 +69,6 @@ public sealed class MediaEffects : FrameworkElement
         {
             dc.PushOpacity(.1);dc.DrawImage(palette.SoftArtwork,new Rect(0,0,w,h));dc.Pop();
         }
-        double energy=(double)GetValue(EnergyProperty);
-        double intensity=settings.AnimationIntensity switch {"Low"=>.5,"High"=>1,_=>.75};
-        double pulse=energy*intensity;
-        if(music && settings.MediaVisualizer=="Album Glow")
-        {
-            glow.GradientStops[0].Color=first.Color;
-            dc.PushOpacity(.08+.38*pulse);
-            dc.DrawEllipse(glow,null,expanded?new Point(w-35,20):new Point(w-15,h/2),expanded?150:85,expanded?65:35);
-            glow.GradientStops[0].Color=third.Color;
-            if(expanded)dc.DrawEllipse(glow,null,new Point(w,h/2),75,h);
-            dc.Pop();
-        }
-        if(music && settings.MediaVisualizer=="Breathing Island")
-        {
-            dc.PushOpacity(.12+.6*pulse);
-            double inset=2+(1-pulse)*1.5;
-            dc.PushTransform(new TranslateTransform(inset,inset));
-            dc.DrawGeometry(null,new Pen(accent,1+intensity*pulse),Surface.Outline(Math.Max(0,w-2*inset),Math.Max(0,h-2*inset)));
-            dc.Pop();dc.Pop();
-        }
         if(music && settings.MediaVisualizer=="Equalizer")
         {
             int columns=expanded?16:9, rows=expanded?6:5;
@@ -114,7 +88,7 @@ public sealed class MediaEffects : FrameworkElement
                 }
             }
         }
-        dc.PushOpacity(settings.MediaVisualizer=="Breathing Island"?0:.04+settings.BorderGlow*.08);
+        dc.PushOpacity(.04+settings.BorderGlow*.08);
         dc.DrawGeometry(null,new Pen(accent,1.4),outline);
         dc.Pop();dc.Pop();
     }

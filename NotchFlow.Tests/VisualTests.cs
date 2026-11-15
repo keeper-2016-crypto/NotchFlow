@@ -47,7 +47,7 @@ internal static class VisualTests
         var effects=(MediaEffects)window.FindName("EffectsLayer");
         var surface=(IslandSurface)window.FindName("Capsule");
         int count=0;
-        foreach(var visualizer in new[]{"Classic","Album Glow","Breathing Island","Equalizer"})
+        foreach(var visualizer in new[]{"Classic","Equalizer"})
         foreach(var background in new[]{"Solid","Acrylic Glass","Liquid Glass","Album Gradient"})
         foreach(var style in new[]{"Clean","Blurred","Gradient","Blur + Gradient"})
         {
@@ -74,7 +74,7 @@ internal static class VisualTests
         var cancel=(Button)((StackPanel)panel.Children[2]).Children[0];
         cancel.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Check(!window.HasInteractiveOverlay,"Cancel releases confirmation lock without deleting");
-        vm.AcceptSnapshot(null);window.Apply(new AppSettings{MediaVisualizer="Equalizer",AnimateOnlyWhilePlaying=false,CollapseOnLeave=false});
+        vm.AcceptSnapshot(null);window.Apply(new AppSettings{MediaVisualizer="Equalizer",CollapseOnLeave=false});
         Check(!effects.IsAnimating,"No media session stops visual animation even with idle animation enabled");
         vm.AcceptSnapshot(snapshot);
         var sliderControl=(Slider)window.FindName("SystemVolume");
@@ -96,7 +96,7 @@ internal static class VisualTests
         var setExpanded=typeof(IslandWindow).GetMethod("SetExpanded",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
         var screenshotDirectory=System.IO.Path.Combine(Environment.CurrentDirectory,".build","visual-screenshots");
         System.IO.Directory.CreateDirectory(screenshotDirectory);
-        foreach(var mode in new[]{"Classic","Album Glow","Breathing Island","Equalizer","Neon Ribbon"})
+        foreach(var mode in new[]{"Classic","Equalizer"})
         {
             var styleSettings=new AppSettings{MediaVisualizer=mode,BackgroundEffect="Album Gradient",AlbumArtStyle="Blur + Gradient",AccentMode="Dynamic Album Colors",CollapseOnLeave=false};
             window.Apply(styleSettings);

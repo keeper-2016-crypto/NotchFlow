@@ -1,8 +1,8 @@
-#ifndef ReleaseVersion
- #define ReleaseVersion "0.3.6"
+﻿#ifndef ReleaseVersion
+ #define ReleaseVersion "0.3.7"
 #endif
 #ifndef PayloadDir
- #define PayloadDir "..\dist\release-0_3_6\Portable"
+ #define PayloadDir "..\dist\release-0_3_7\Portable"
 #endif
 [Setup]
 AppId={{F936FCEB-1C54-40C5-9E75-B5492A088745}
@@ -31,14 +31,14 @@ RestartApplications=no
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
-Name: "desktopicon"; Description: "Ярлык на рабочем столе"; Flags: unchecked
+Name: "desktopicon"; Description: "РЇСЂР»С‹Рє РЅР° СЂР°Р±РѕС‡РµРј СЃС‚РѕР»Рµ"; Flags: unchecked
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\NotchFlow"; Filename: "{app}\NotchFlow.exe"
 Name: "{autodesktop}\NotchFlow"; Filename: "{app}\NotchFlow.exe"; Tasks: desktopicon
 [Run]
-Filename: "{app}\NotchFlow.exe"; Description: "Запустить NotchFlow"; Flags: nowait postinstall skipifsilent; Check: not IsUpdateLaunch
+Filename: "{app}\NotchFlow.exe"; Description: "Р—Р°РїСѓСЃС‚РёС‚СЊ NotchFlow"; Flags: nowait postinstall skipifsilent; Check: not IsUpdateLaunch
 Filename: "{app}\NotchFlow.exe"; Flags: nowait; Check: IsUpdateLaunch
 [Code]
 function IsUpdateLaunch: Boolean;
@@ -60,3 +60,4 @@ begin
       if CompareText(Value, '"' + ExpandConstant('{app}\NotchFlow.exe') + '"') = 0 then
         RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'NotchFlow');
 end;
+

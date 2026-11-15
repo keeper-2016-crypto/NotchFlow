@@ -1,0 +1,38 @@
+name: Test NotchFlow VPS SSH
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ssh-smoke-test:
+    name: Check SSH and deployment directories (read-only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Configure deployment SSH key and pinned host key
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.NOTCHFLOW_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.NOTCHFLOW_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/notchflow_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/notchflow_deploy" "$HOME/.ssh/known_hosts"
+          ssh-keygen -y -f "$HOME/.ssh/notchflow_deploy" >/dev/null
+
+      - name: Validate SSH login and deployment directory access
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -i "$HOME/.ssh/notchflow_deploy" notchflow-deploy@195.78.49.209 \
+            'set -e; test "$(whoami)" = "notchflow-deploy"; for d in /var/www/notchflow /var/www/notchflow/releases /home/notchflow-deploy/incoming /home/notchflow-deploy/notchflow-backups; do test -w "$d"; echo "OK $d"; done'
+          echo "SSH authentication and deployment directory access passed." >> "$GITHUB_STEP_SUMMARY"

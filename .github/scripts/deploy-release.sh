@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 import sys
 
-stage, base, version = map(Path, sys.argv[1:3]) if False else (Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3])
+stage, base, version = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
 new = json.loads((stage / "version.json").read_bytes())
 old = json.loads((base / "version.json").read_bytes())
 def as_tuple(v):

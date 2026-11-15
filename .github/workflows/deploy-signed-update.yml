@@ -1,0 +1,83 @@
+name: Deploy signed NotchFlow update
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing GitHub Release tag, for example v0.3.7"
+        required: true
+        type: string
+      confirm:
+        description: "Type DEPLOY to publish to production"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notchflow-production-update
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm == 'DEPLOY' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download signed assets and verify the pinned RSA key
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid release tag"; exit 1; }
+          mkdir -p release-assets
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets
+          python3 .github/scripts/verify-release.py "$RELEASE_TAG" release-assets NotchFlow/Assets/UpdatePublicKey.pem
+
+      - name: Configure pinned SSH connection
+        env:
+          DEPLOY_KEY: ${{ secrets.NOTCHFLOW_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.NOTCHFLOW_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/notchflow_deploy"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/notchflow_deploy" "$HOME/.ssh/known_hosts"
+
+      - name: Upload verified assets and activate
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          HOST="195.78.49.209"
+          USER="notchflow-deploy"
+          RUN_DIR="/home/notchflow-deploy/incoming/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -i "$HOME/.ssh/notchflow_deploy")
+          ssh "${SSH_OPTS[@]}" "$USER@$HOST" "mkdir -p '$RUN_DIR'"
+          scp "${SSH_OPTS[@]}" \
+            release-assets/version.json \
+            release-assets/version.json.sig \
+            "release-assets/NotchFlow-$VERSION-Setup.exe" \
+            "$USER@$HOST:$RUN_DIR/"
+          ssh "${SSH_OPTS[@]}" "$USER@$HOST" \
+            "bash -s -- '$RUN_DIR' '$VERSION'" < .github/scripts/deploy-release.sh
+
+      - name: Verify public HTTPS files match the signed assets
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          BASE="https://195.78.49.209:8443/notchflow"
+          curl --fail --silent --show-error --retry 4 --retry-delay 2 "$BASE/version.json" | cmp - release-assets/version.json
+          curl --fail --silent --show-error --retry 4 --retry-delay 2 "$BASE/version.json.sig" | cmp - release-assets/version.json.sig
+          curl --fail --silent --show-error --head "$BASE/releases/NotchFlow-$VERSION-Setup.exe" | grep -qi '^HTTP/[0-9.]* 200'
+          echo "Signed NotchFlow $VERSION update is live." >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,40 @@
+name: Verify signed NotchFlow release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing GitHub Release tag to verify"
+        required: true
+        default: "v0.3.6"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify release signature and installer (no deployment)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out verifier and pinned public key
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid release tag"; exit 1; }
+          mkdir -p release-assets
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets
+
+      - name: Verify RSA-PSS signature, pinned SPKI, version, hash and size
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/verify-release.py "$RELEASE_TAG" release-assets NotchFlow/Assets/UpdatePublicKey.pem
+          echo "Verified release $RELEASE_TAG. No VPS changes were made." >> "$GITHUB_STEP_SUMMARY"

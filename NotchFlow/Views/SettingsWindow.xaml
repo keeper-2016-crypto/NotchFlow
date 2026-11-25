@@ -50,7 +50,7 @@
 </Border>
 <ControlTemplate.Triggers>
 <Trigger Property="IsSelected" Value="True">
-<Setter TargetName="Item" Property="Background" Value="#202022"/>
+<Setter TargetName="Item" Property="Background" Value="{DynamicResource SettingsAccentTint}"/>
 <Setter Property="Foreground" Value="#EFEDE8"/>
 </Trigger>
 <Trigger Property="IsMouseOver" Value="True">
@@ -73,7 +73,7 @@
 <Border BorderBrush="#232325" BorderThickness="0,0,1,0" Padding="0,0,14,0">
 <StackPanel>
 <TextBlock Text="NotchFlow" FontSize="19" FontWeight="SemiBold" Margin="12,2,0,24"/>
-<TabPanel IsItemsHost="True"/>
+<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="320"><TabPanel IsItemsHost="True"/></ScrollViewer>
 </StackPanel>
 </Border>
 <ContentPresenter Grid.Column="1" Margin="24,0,0,0" ContentSource="SelectedContent"/>
@@ -105,7 +105,7 @@
 </Grid>
 <ControlTemplate.Triggers>
 <Trigger Property="IsChecked" Value="True">
-<Setter TargetName="Rail" Property="Background" Value="#6556B8"/>
+<Setter TargetName="Rail" Property="Background" Value="{DynamicResource SettingsAccent}"/>
 <Setter TargetName="Dot" Property="HorizontalAlignment" Value="Right"/>
 </Trigger>
 <Trigger Property="IsEnabled" Value="False">
@@ -128,7 +128,7 @@
 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 <Button Content="Отмена" IsCancel="True" Click="CancelClick"/>
 <Button x:Name="ApplyButton" Content="Применить" Click="ApplyClick"/>
-<Button x:Name="SaveButton" Content="Сохранить" Click="SaveClick" Background="#51448B"/>
+<Button x:Name="SaveButton" Content="Сохранить" Click="SaveClick" Background="{DynamicResource SettingsAccentTint}"/>
 </StackPanel>
 </StackPanel>
 <TabControl x:Name="Categories" TabStripPlacement="Left">
@@ -437,7 +437,7 @@
 </StackPanel>
 </ScrollViewer>
 </TabItem>
-<TabItem Header="О приложении">
+<TabItem Header="Файлы"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,16,16"><TextBlock Text="Файлы" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/><CheckBox IsChecked="{Binding FileShelfEnabled, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Включить полку файлов" TextWrapping="Wrap"/></CheckBox><TextBlock Text="Перетаскивайте файлы и папки на остров. Полка хранит ссылки: оригиналы не копируются и не удаляются. Для передачи обратно используйте Ctrl — копировать, Shift — переместить; действие выполняет принимающая программа." TextWrapping="Wrap" Foreground="#B4B4BF" Margin="0,12,0,0"/></StackPanel></ScrollViewer></TabItem><TabItem Header="Системные уведомления"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,16,16"><TextBlock Text="Системные уведомления" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/><CheckBox IsChecked="{Binding CapsLockNotifications, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Показывать Caps Lock" TextWrapping="Wrap"/></CheckBox><CheckBox IsChecked="{Binding NumLockNotifications, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Показывать Num Lock" TextWrapping="Wrap"/></CheckBox><TextBlock Text="Длительность уведомления, мс" Margin="0,12,0,0"/><Slider Minimum="1000" Maximum="5000" TickFrequency="100" IsSnapToTickEnabled="True" Value="{Binding KeyboardNotificationMs, UpdateSourceTrigger=PropertyChanged}"/><TextBlock Text="{Binding KeyboardNotificationMs}"/><CheckBox IsChecked="{Binding KeyboardNotificationAnimations, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Анимации уведомлений" TextWrapping="Wrap"/></CheckBox></StackPanel></ScrollViewer></TabItem><TabItem Header="Мониторинг системы"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,16,16"><TextBlock Text="Мониторинг системы" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/><CheckBox IsChecked="{Binding SystemMonitorEnabled, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Включить мониторинг" TextWrapping="Wrap"/></CheckBox><CheckBox IsChecked="{Binding MonitorCpu, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Показывать CPU" TextWrapping="Wrap"/></CheckBox><CheckBox IsChecked="{Binding MonitorGpu, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Показывать GPU" TextWrapping="Wrap"/></CheckBox><CheckBox IsChecked="{Binding MonitorRam, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Показывать RAM" TextWrapping="Wrap"/></CheckBox><TextBlock Text="Интервал обновления" Margin="0,12,0,0"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding MonitorIntervalSeconds, UpdateSourceTrigger=PropertyChanged}"><ComboBoxItem Tag="1" Content="1 секунда"/><ComboBoxItem Tag="2" Content="2 секунды"/><ComboBoxItem Tag="5" Content="5 секунд"/></ComboBox><TextBlock Text="Показатель компактного острова"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding CompactSystemMetric, UpdateSourceTrigger=PropertyChanged}"><ComboBoxItem Tag="None" Content="Ничего не показывать"/><ComboBoxItem Tag="CPU" Content="CPU"/><ComboBoxItem Tag="GPU" Content="GPU"/><ComboBoxItem Tag="RAM" Content="RAM"/><ComboBoxItem Tag="Auto" Content="Автоматическая смена"/></ComboBox><CheckBox IsChecked="{Binding MonitorGraphs, UpdateSourceTrigger=PropertyChanged}"><TextBlock Text="Мини-график истории CPU" TextWrapping="Wrap"/></CheckBox><TextBlock Text="Музыка имеет приоритет. После паузы сохраняется обычная задержка перехода к часам; затем может появиться выбранный показатель. Когда данные не видны, сбор приостанавливается. GPU: самый загруженный движок, без суммирования разных адаптеров." TextWrapping="Wrap" Foreground="#B4B4BF" Margin="0,12,0,0"/></StackPanel></ScrollViewer></TabItem><TabItem Header="О приложении">
 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 <StackPanel Margin="0,0,16,16">
 <TextBlock Text="О приложении" FontSize="26" FontWeight="SemiBold" Margin="0,0,0,16"/>

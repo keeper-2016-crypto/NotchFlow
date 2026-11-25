@@ -15,7 +15,7 @@ public partial class SettingsWindow : Window
  public UpdateCoordinator? Updates{get;}
  public SettingsWindow(AppSettings current,Action<AppSettings> save,Action<AppSettings>? preview=null,UpdateCoordinator? updates=null)
  {
-  Updates=updates;InitializeComponent();draft=current.Clone();this.save=save;
+  Updates=updates;InitializeComponent();ApplyAccent(AlbumColor.Accent(current,AlbumColor.Palette(null)));draft=current.Clone();this.save=save;
   var screens=new List<MonitorOption>{new("","Основной монитор (автоматически)")};
   screens.AddRange(System.Windows.Forms.Screen.AllScreens.Select((s,i)=>new MonitorOption(s.DeviceName,$"Монитор {i+1} — {s.Bounds.Width} × {s.Bounds.Height}")));
   if(!screens.Any(s=>s.Id==draft.Monitor))screens.Add(new(draft.Monitor,"Отключённый монитор (временно основной)"));
@@ -23,6 +23,22 @@ public partial class SettingsWindow : Window
   VersionText.Text="Версия "+typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3);
   MaxHeight=SystemParameters.WorkArea.Height;MaxWidth=SystemParameters.WorkArea.Width;
   Height=Math.Min(Height,MaxHeight);Width=Math.Min(Width,MaxWidth);
+ }
+
+ public void ApplyAccent(Color color)
+ {
+  Resources["SettingsAccent"]=new SolidColorBrush(color);
+  Resources["SettingsAccentTint"]=new SolidColorBrush(Color.FromRgb((byte)(20+color.R*.31),(byte)(20+color.G*.31),(byte)(20+color.B*.31)));
+ }
+ [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+ static extern int DwmSetWindowAttribute(IntPtr hwnd,int attribute,ref int value,int size);
+ protected override void OnSourceInitialized(EventArgs e)
+ {
+  base.OnSourceInitialized(e);
+  var hwnd=new System.Windows.Interop.WindowInteropHelper(this).Handle;
+  int dark=1,caption=0x0C0B0B;
+  DwmSetWindowAttribute(hwnd,20,ref dark,4);
+  DwmSetWindowAttribute(hwnd,35,ref caption,4);
  }
  public sealed record MonitorOption(string Id,string Label);
  static bool HasErrors(DependencyObject parent) {if(Validation.GetHasError(parent))return true;foreach(var child in LogicalTreeHelper.GetChildren(parent)){if(child is DependencyObject dependency && HasErrors(dependency))return true;}for(int i=0;i<(parent is Visual ? VisualTreeHelper.GetChildrenCount(parent) : 0);i++)if(HasErrors(VisualTreeHelper.GetChild(parent,i)))return true;return false;}

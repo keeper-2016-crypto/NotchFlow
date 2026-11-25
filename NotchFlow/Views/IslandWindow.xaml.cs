@@ -31,12 +31,14 @@ public partial class IslandWindow : Window
     readonly DispatcherTimer collapse = new() { Interval = TimeSpan.FromMilliseconds(380) };
     readonly DispatcherTimer toastTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     public event Action? SettingsRequested;
+    public event Action<Color>? AccentChanged;
+    public Color CurrentAccent => AlbumColor.Accent(settings,AlbumColor.Palette(vm.Artwork));
     public bool IsExpanded => expanded;
 
     public IslandWindow(IslandViewModel vm, AppSettings settings, VolumeService? volume = null)
     {
         this.vm = vm; this.settings = settings; this.volume = volume;
-        InitializeComponent(); DataContext = vm;
+        InitializeComponent(); DataContext = vm; InitializeFeatures();
         GlassLayer.Surface=Capsule;
         Capsule.MouseEnter+=(_,_)=>GlassLayer.Hover(true);
         Capsule.MouseLeave+=(_,_)=>GlassLayer.Hover(false);
@@ -86,7 +88,7 @@ public partial class IslandWindow : Window
         Capsule.Effect = settings.Shadow ? new DropShadowEffect { BlurRadius = 12, ShadowDepth = 3, Opacity = .22 } : null;
         Topmost = settings.AlwaysOnTop; vm.Personal.AnimationsEnabled = settings.Animations && !settings.ReduceMotion; vm.Weather.Configure(settings.WeatherCity); vm.SetEnabled(settings.MediaEnabled);
         if (!settings.VolumeEnabled && showingToast) { showingToast = false; toastTimer.Stop(); }
-        RenderState(); WindowService.Position(this, settings); UpdateAccent(); UpdateActivity();
+        ConfigureFeatures(); RenderState(); WindowService.Position(this, settings); UpdateAccent(); UpdateActivity();
         try{nativeBackdrop?.Enable(settings.BackgroundEffect=="Liquid Glass"&&settings.GlassBackdropBlur);}catch(Exception ex){Log.Error(ex);nativeBackdrop?.Dispose();nativeBackdrop=null;}
     }
     void BackdropLayout(object? sender,EventArgs e)=>SyncBackdrop(false);
@@ -96,12 +98,12 @@ public partial class IslandWindow : Window
         try{nativeBackdrop?.Sync(force);}
         catch(Exception ex){Log.Error(ex);nativeBackdrop?.Dispose();nativeBackdrop=null;}
     }
-    int ContentHeight => vm.SelectedTab switch { "Weather" => 320, "Notes" => 390, "Tasks" => 350, _ => 150 };
-    int Duration => settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation ? settings.AnimationMs : 0;
+    int ContentHeight => (vm.SelectedTab switch { "Weather" => 320, "Notes" => 390, "Tasks" or "Files" => 350, "System"=>150, _ => 150 });
+    int Duration => (!keyboardNotice || settings.KeyboardNotificationAnimations) && settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation ? settings.AnimationMs : 0;
     void Resize()
     {
-        Motion.To(Capsule, WidthProperty, (showingToast ? 260 : expanded ? 400 : vm.UseClock ? 176 : 212) + (settings.AttachToTop ? 20 : 0), Duration);
-        Motion.To(Capsule, HeightProperty, showingToast ? 40 : expanded ? ContentHeight : 36, Duration);
+        Motion.To(Capsule, WidthProperty, (keyboardNotice ? 280 : showingToast ? 260 : expanded ? 400 : ShowSystemCompact ? 212 : vm.UseClock ? 176 : 212) + (settings.AttachToTop ? 20 : 0), Duration);
+        Motion.To(Capsule, HeightProperty, keyboardNotice ? 36 : showingToast ? 40 : expanded ? ContentHeight + (dragHintActive ? 34 : 0) : 36, Duration);
         var radius = new CornerRadius(expanded && !showingToast ? settings.CornerRadius : 18);
         if (Duration == 0) { Capsule.BeginAnimation(Border.CornerRadiusProperty, null); Capsule.CornerRadius = radius; }
         else Capsule.BeginAnimation(Border.CornerRadiusProperty, new CornerRadiusAnimation { From = Capsule.CornerRadius, To = radius, Duration = TimeSpan.FromMilliseconds(Duration) });
@@ -118,7 +120,7 @@ public partial class IslandWindow : Window
     void Fade(FrameworkElement element, bool visible, int version, int delay = 0)
     {
         element.IsHitTestVisible = visible;
-        if (Duration == 0) { element.BeginAnimation(OpacityProperty, null); element.Opacity = visible ? 1 : 0; element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed; return; }
+        if (Duration == 0 || (!visible && (keyboardNotice || element == KeyboardBanner))) { element.BeginAnimation(OpacityProperty, null); element.Opacity = visible ? 1 : 0; element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed; return; }
         if (visible) element.Visibility = Visibility.Visible;
         var fade = new DoubleAnimation(visible ? 1 : 0, TimeSpan.FromMilliseconds(Duration * .65))
         { BeginTime = TimeSpan.FromMilliseconds(delay), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
@@ -132,10 +134,11 @@ public partial class IslandWindow : Window
         WindowService.SetInteractive(this, expanded && !showingToast && vm.SelectedTab is "Notes" or "Tasks");
         int version = ++transition;
         Resize();
-        Fade(Compact, !expanded && !showingToast && !vm.UseClock, version);
-        Fade(ClockCompact, !expanded && !showingToast && vm.UseClock, version);
-        Fade(Expanded, expanded && !showingToast, version, expanded ? Duration / 4 : 0);
-        Fade(Toast, showingToast, version);
+        Fade(Compact, !expanded && !showingToast && !keyboardNotice && !vm.UseClock, version);
+        Fade(ClockCompact, !expanded && !showingToast && !keyboardNotice && !ShowSystemCompact && vm.UseClock, version);
+        Fade(Expanded, expanded && !keyboardNotice && !showingToast, version, expanded ? Duration / 4 : 0);
+        Fade(Toast, showingToast && !keyboardNotice, version);
+        RenderFeatures(version);
         Fade(PlayerContent, vm.SelectedTab == "Music", version);
         Fade(WeatherPane, vm.SelectedTab == "Weather", version);
         Fade(NotesPane, vm.SelectedTab == "Notes", version);
@@ -150,7 +153,7 @@ public partial class IslandWindow : Window
     void LeaveCapsule(object sender, MouseEventArgs args) { hover.Stop(); if (!HasInteractiveOverlay && settings.CollapseOnLeave && !pinned) collapse.Start(); }
     void CollapseTick(object? sender, EventArgs args) { collapse.Stop(); if (!HasInteractiveOverlay && settings.CollapseOnLeave && !pinned && !Capsule.IsMouseOver && !SystemVolume.IsMouseCaptureWithin && !(IsKeyboardFocusWithin && vm.SelectedTab is "Notes" or "Tasks")) SetExpanded(false); }
     void OpenClick(object sender, MouseButtonEventArgs args) { hover.Stop(); SetExpanded(true); }
-    void SelectTab(object sender, RoutedEventArgs args) { if(sender is Button button && button.Tag is string tab) { vm.Personal.Flush(); vm.SelectedTab=tab; if(tab is "Notes" or "Tasks") Activate(); } }
+    void SelectTab(object sender, RoutedEventArgs args) { if(sender is Button button && button.Tag is string tab) { EndIncomingDrag(); vm.Personal.Flush(); vm.SelectedTab=tab; if(tab is "Notes" or "Tasks" or "Files") Activate(); if(tab=="Files") _=shelf.RefreshAsync(); } }
     public bool TrySaveUserData() => vm.Personal.Flush();
     void PinClick(object sender, RoutedEventArgs args) { pinned = !pinned; PinPath.Stroke = pinned ? Brushes.White : new SolidColorBrush(Color.FromRgb(133,133,135)); }
     async void SourceClick(object sender,RoutedEventArgs args)
@@ -233,6 +236,7 @@ public partial class IslandWindow : Window
     public void ShowVolume(int value, bool mute)
     {
         if (!settings.VolumeEnabled || expanded || HasInteractiveOverlay || SystemVolume.IsMouseCaptureWithin) return;
+        if(keyboardNotice)return;
         ToastText.Text = mute ? "Звук выключен" : $"Громкость  {value}%";
         VolumeBar.Visibility = Visibility.Visible;
         Motion.To(VolumeBar, System.Windows.Controls.Primitives.RangeBase.ValueProperty, mute ? 0 : value, Duration);
@@ -248,23 +252,27 @@ public partial class IslandWindow : Window
     void MediaChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName is nameof(vm.UseClock) or nameof(vm.SelectedTab)) RenderState();
-        if (args.PropertyName == nameof(vm.Playing)) UpdateActivity();
+        if (args.PropertyName == nameof(vm.Playing)) { UpdateActivity(); ConfigureMonitor(); }
         if (args.PropertyName == nameof(vm.Artwork)) UpdateAccent();
 
     }
     void UpdateAccent()
     {
         var brush = new SolidColorBrush(AlbumColor.Accent(settings,AlbumColor.Palette(vm.Artwork)));
+        var shelfTint = new SolidColorBrush(brush.Color) { Opacity = .24 };
+        Resources["ShelfTint"] = shelfTint;
+        DropZone.BorderBrush = brush;
+        AccentChanged?.Invoke(brush.Color);SystemPane.Accent=brush;KeyboardIcon.Stroke=brush;SystemCompactText.Foreground=brush;
         ArtistText.Foreground = brush; ElapsedText.Foreground=brush; RemainingText.Foreground=brush; SpeakerPath.Stroke=brush; ProgressWave.Accent = brush; PlayIcon.Fill=brush;
         GlassLayer.Configure(settings,vm.Artwork);
-        EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
+        EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !keyboardNotice && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
         foreach (var bar in new[] { Bar0, Bar1, Bar2, Bar3 }) bar.Background = brush;
     }
     void UpdateActivity()
     {
         if (ProgressWave == null) return;
         GlassLayer.Configure(settings,vm.Artwork);
-        EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
+        EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !keyboardNotice && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
         Meter.Visibility=settings.MediaVisualizer=="Classic"?Visibility.Visible:Visibility.Collapsed;
         ProgressWave.SetMotion(vm.Playing && settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation && settings.MediaVisualizer=="Classic" && expanded && !showingToast && vm.SelectedTab == "Music");
         int i = 0;
@@ -279,7 +287,7 @@ public partial class IslandWindow : Window
     protected override void OnClosing(CancelEventArgs e) { if(!vm.Personal.Flush()) { e.Cancel=true; MessageBox.Show(this, vm.Personal.Status + "\nПовторите сохранение перед выходом.", "NotchFlow"); } base.OnClosing(e); }
     protected override void OnClosed(EventArgs e)
     {
-        closing = true;LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
+        closing = true;DisposeFeatures();LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
         if (volume != null) volume.StateChanged -= VolumeStateChanged;
         vm.PropertyChanged -= MediaChanged; SystemEvents.DisplaySettingsChanged -= DisplayChanged;
         vm.Dispose(); base.OnClosed(e);

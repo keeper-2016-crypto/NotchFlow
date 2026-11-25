@@ -68,7 +68,7 @@ internal static class VisualTests
         vm.AcceptSnapshot(snapshot);Check(!effects.IsAnimating,"Reduce Motion prevents animation");
         window.ConfirmDeletion("Delete task?",()=>throw new InvalidOperationException("Cancel invoked deletion"));
         Check(window.HasInteractiveOverlay,"Confirmation holds interaction lock");
-        var host=(Grid)window.Content;
+        var host=(Grid)window.FindName("ClipRoot");
         var overlay=(Grid)host.Children[host.Children.Count-1];
         var panel=(StackPanel)((Border)overlay.Children[0]).Child;
         var cancel=(Button)((StackPanel)panel.Children[2]).Children[0];
@@ -89,7 +89,7 @@ internal static class VisualTests
         window.ConfirmDeletion("Delete task?",()=>{});
         Mouse.Capture(null);Pump(30);
         Check(window.HasInteractiveOverlay,"Ending volume capture preserves confirmation lock");
-        host=(Grid)window.Content;overlay=(Grid)host.Children[host.Children.Count-1];
+        host=(Grid)window.FindName("ClipRoot");overlay=(Grid)host.Children[host.Children.Count-1];
         panel=(StackPanel)((Border)overlay.Children[0]).Child;
         ((Button)((StackPanel)panel.Children[2]).Children[0]).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Check(!window.HasInteractiveOverlay,"Last interaction release restores normal collapse");

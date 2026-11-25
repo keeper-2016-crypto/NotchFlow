@@ -17,7 +17,7 @@ internal static class SettingsWindowTests
   var window=new SettingsWindow(original,value=>{store.Save(value);writes++;},_=>previews++);
   window.Show();window.UpdateLayout();
   var tabs=(TabControl)window.FindName("Categories");
-  Check(tabs.Items.Cast<TabItem>().Select(t=>t.Header.ToString()).SequenceEqual(new[]{"Общие","Внешний вид","Медиаплеер","Погода","О приложении"}),"Settings categories are Russian and complete");
+  Check(tabs.Items.Cast<TabItem>().Select(t=>t.Header.ToString()).SequenceEqual(new[]{"Общие","Внешний вид","Медиаплеер","Погода","Файлы","Системные уведомления","Мониторинг системы","О приложении"}),"Settings categories are Russian and complete");
   var draft=(AppSettings)window.DataContext;
   var directory=System.IO.Path.Combine(Environment.CurrentDirectory,".build","settings-redesign");System.IO.Directory.CreateDirectory(directory);
   for(int index=0;index<tabs.Items.Count;index++)

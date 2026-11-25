@@ -35,13 +35,14 @@ public sealed class IslandViewModel : ObservableObject,IDisposable
     public string ClockTime=>now().ToLocalTime().ToString("HH:mm");
     public string ClockDate=>now().ToLocalTime().ToString("d MMM",CultureInfo.GetCultureInfo("ru-RU"));
     public bool UseClock{get=>useClock;private set=>Set(ref useClock,value);}
-    public string SelectedTab {get=>selectedTab;set{if(value is not ("Music" or "Weather" or "Notes" or "Tasks"))return;if(Set(ref selectedTab,value)&&value=="Weather")Weather.EnsureStarted();}}
+    public string SelectedTab {get=>selectedTab;set{if(value is not ("Music" or "Weather" or "Notes" or "Tasks" or "Files" or "System"))return;if(Set(ref selectedTab,value)&&value=="Weather")Weather.EnsureStarted();}}
+    public string? DataDirectory {get;}
     public PersonalViewModel Personal {get;}
     public WeatherViewModel Weather {get;}
     public Windows.Media.Control.GlobalSystemMediaTransportControlsSession? SelectedSource=>media.SelectedSource; public System.Collections.Generic.IReadOnlyList<Windows.Media.Control.GlobalSystemMediaTransportControlsSession> MediaSources=>media.Sources; public void SelectSource(Windows.Media.Control.GlobalSystemMediaTransportControlsSession source)=>media.SelectSource(source); public ICommand Toggle{get;}public ICommand Previous{get;}public ICommand Next{get;}
     public IslandViewModel(MediaService media,Func<DateTimeOffset>? now=null,string? dataDirectory=null)
     {
-        this.media=media;this.now=now??(()=>DateTimeOffset.UtcNow);
+        DataDirectory=dataDirectory;this.media=media;this.now=now??(()=>DateTimeOffset.UtcNow);
         Personal=new(new PersonalStore(dataDirectory));Weather=new(new WeatherService(dataDirectory));
         Toggle=new RelayCommand(async()=>await media.ControlAsync("toggle"));Previous=new RelayCommand(async()=>await media.ControlAsync("previous"));Next=new RelayCommand(async()=>await media.ControlAsync("next"));
         media.Changed+=AcceptSnapshot;ticker.Tick+=Tick;pauseTimer.Tick+=PauseTick;clockTimer.Tick+=ClockTick;UpdateCompact();ClockTick(null,EventArgs.Empty);

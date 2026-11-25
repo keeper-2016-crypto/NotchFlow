@@ -1,8 +1,8 @@
-﻿#ifndef ReleaseVersion
- #define ReleaseVersion "0.3.7"
+#ifndef ReleaseVersion
+ #define ReleaseVersion "0.3.8"
 #endif
 #ifndef PayloadDir
- #define PayloadDir "..\dist\release-0_3_7\Portable"
+ #define PayloadDir "..\dist\release-0_3_8\Portable"
 #endif
 [Setup]
 AppId={{F936FCEB-1C54-40C5-9E75-B5492A088745}

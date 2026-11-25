@@ -41,8 +41,23 @@ public sealed class AppSettings
  public double TintIntensity {get;set;} = .65;
  public double BorderGlow {get;set;} = .25;
  public bool ReduceMotion {get;set;}
+ public bool FileShelfEnabled {get;set;} = true;
+ public bool CapsLockNotifications {get;set;} = true;
+ public bool NumLockNotifications {get;set;} = true;
+ public int KeyboardNotificationMs {get;set;} = 1800;
+ public bool KeyboardNotificationAnimations {get;set;} = true;
+ public bool SystemMonitorEnabled {get;set;}
+ public bool MonitorCpu {get;set;} = true;
+ public bool MonitorGpu {get;set;} = true;
+ public bool MonitorRam {get;set;} = true;
+ public int MonitorIntervalSeconds {get;set;} = 1;
+ public string CompactSystemMetric {get;set;} = "None";
+ public bool MonitorGraphs {get;set;} = true;
  public AppSettings Clone() => (AppSettings)MemberwiseClone();
  public void Validate() {
+  KeyboardNotificationMs=Math.Clamp(KeyboardNotificationMs,1000,5000);
+  if(MonitorIntervalSeconds is not (1 or 2 or 5))MonitorIntervalSeconds=1;
+  if(CompactSystemMetric is not ("None" or "CPU" or "GPU" or "RAM" or "Auto"))CompactSystemMetric="None";
   if(!double.IsFinite(GlassOpacity))throw new ArgumentException("Некорректная плотность тонировки стекла.");
   GlassOpacity=Math.Clamp(GlassOpacity,0,1);
   if(GlassTint is not ("Dark" or "Neutral" or "Album Color" or "Custom"))GlassTint="Dark";

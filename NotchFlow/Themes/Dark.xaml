@@ -17,7 +17,7 @@
   </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
  </Style>
  <Style TargetType="ContextMenu" BasedOn="{StaticResource SourceMenu}"/>
- <Style TargetType="MenuItem" BasedOn="{StaticResource SourceItem}"/></ResourceDictionary>
+ <Style TargetType="MenuItem" BasedOn="{StaticResource SourceItem}"/><Geometry x:Key="MetricCpuIcon">M2,2 H10 V10 H2 Z M4,0 V2 M8,0 V2 M4,10 V12 M8,10 V12 M0,4 H2 M10,4 H12 M0,8 H2 M10,8 H12</Geometry><Geometry x:Key="MetricGpuIcon">M0,1 H2 V10 H15 V3 H2 M4,10 V12 H9 V10 M13,6.5 A2.4,2.4 0 1 1 8.2,6.5 A2.4,2.4 0 1 1 13,6.5 M4,5 H6 M4,7 H6</Geometry><Geometry x:Key="MetricRamIcon">M1,3 H11 V9 H1 Z M3,5 V7 M6,5 V7 M9,5 V7 M3,9 V11 M6,9 V11 M9,9 V11</Geometry></ResourceDictionary>
 
 
 

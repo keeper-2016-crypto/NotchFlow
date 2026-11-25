@@ -21,7 +21,7 @@ def main() -> None:
     if len(sys.argv) != 4:
         fail("usage: verify-release.py vX.Y.Z asset-directory public-key.pem")
     tag, folder_arg, key_arg = sys.argv[1:]
-    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?", tag):
         fail("unexpected tag format")
     version = tag[1:]
     folder = Path(folder_arg)

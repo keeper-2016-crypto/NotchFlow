@@ -1,8 +1,8 @@
 #ifndef ReleaseVersion
- #define ReleaseVersion "0.3.8"
+ #define ReleaseVersion "0.3.8.1"
 #endif
 #ifndef PayloadDir
- #define PayloadDir "..\dist\release-0_3_8\Portable"
+ #define PayloadDir "..\dist\release-0_3_8_1\Portable"
 #endif
 [Setup]
 AppId={{F936FCEB-1C54-40C5-9E75-B5492A088745}
@@ -31,14 +31,14 @@ RestartApplications=no
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
-Name: "desktopicon"; Description: "РЇСЂР»С‹Рє РЅР° СЂР°Р±РѕС‡РµРј СЃС‚РѕР»Рµ"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\NotchFlow"; Filename: "{app}\NotchFlow.exe"
 Name: "{autodesktop}\NotchFlow"; Filename: "{app}\NotchFlow.exe"; Tasks: desktopicon
 [Run]
-Filename: "{app}\NotchFlow.exe"; Description: "Р—Р°РїСѓСЃС‚РёС‚СЊ NotchFlow"; Flags: nowait postinstall skipifsilent; Check: not IsUpdateLaunch
+Filename: "{app}\NotchFlow.exe"; Description: "{cm:LaunchProgram,NotchFlow}"; Flags: nowait postinstall skipifsilent; Check: not IsUpdateLaunch
 Filename: "{app}\NotchFlow.exe"; Flags: nowait; Check: IsUpdateLaunch
 [Code]
 function IsUpdateLaunch: Boolean;

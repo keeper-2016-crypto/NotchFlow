@@ -8,8 +8,8 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>NotchFlow</AssemblyName><RootNamespace>NotchFlow</RootNamespace><Product>NotchFlow</Product><Title>NotchFlow</Title><ApplicationIcon>Assets\NotchFlow.ico</ApplicationIcon>
-    <Version>0.3.8</Version>
-    <AssemblyVersion>$(Version).0</AssemblyVersion><FileVersion>$(Version).0</FileVersion>
+    <Version>0.3.8.1</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion><FileVersion>$(Version)</FileVersion>
     <InformationalVersion>$(Version)</InformationalVersion><IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <DefineConstants Condition="'$(LocalUpdateTest)' == 'true'">$(DefineConstants);LOCAL_UPDATE_TEST</DefineConstants>
   </PropertyGroup>

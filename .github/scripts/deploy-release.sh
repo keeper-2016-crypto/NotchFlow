@@ -6,7 +6,7 @@ umask 027
 STAGE="${1:?staging directory required}"
 VERSION="${2:?version required}"
 BASE="/var/www/notchflow"
-[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid version"; exit 1; }
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "Invalid version"; exit 1; }
 [[ "$STAGE" =~ ^/home/notchflow-deploy/incoming/[0-9]+-[0-9]+$ ]] || { echo "Invalid stage directory"; exit 1; }
 [[ "$(id -un)" == "notchflow-deploy" ]] || { echo "Wrong SSH user"; exit 1; }
 test -f "$STAGE/version.json"

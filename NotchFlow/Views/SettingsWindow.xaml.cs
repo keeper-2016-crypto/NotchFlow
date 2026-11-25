@@ -20,7 +20,8 @@ public partial class SettingsWindow : Window
   screens.AddRange(System.Windows.Forms.Screen.AllScreens.Select((s,i)=>new MonitorOption(s.DeviceName,$"Монитор {i+1} — {s.Bounds.Width} × {s.Bounds.Height}")));
   if(!screens.Any(s=>s.Id==draft.Monitor))screens.Add(new(draft.Monitor,"Отключённый монитор (временно основной)"));
   MonitorBox.ItemsSource=screens;DataContext=draft;
-  VersionText.Text="Версия "+typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3);
+  var version=typeof(SettingsWindow).Assembly.GetName().Version!;
+  VersionText.Text="Версия "+version.ToString(version.Revision > 0 ? 4 : 3);
   MaxHeight=SystemParameters.WorkArea.Height;MaxWidth=SystemParameters.WorkArea.Width;
   Height=Math.Min(Height,MaxHeight);Width=Math.Min(Width,MaxWidth);
  }

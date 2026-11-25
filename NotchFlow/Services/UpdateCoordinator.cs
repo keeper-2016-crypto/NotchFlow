@@ -23,7 +23,7 @@ public sealed class UpdateCoordinator : INotifyPropertyChanged,IDisposable
  public event Action<VerifiedUpdate>? Available;
  public UpdateService Service=>service;
  public bool IsAvailable=>true;
- public string CurrentVersion=>service.CurrentVersion.ToString(3);
+ public string CurrentVersion=>service.CurrentVersion.ToString(service.CurrentVersion.Revision > 0 ? 4 : 3);
  public string Status=>status;
  public string LastSuccess=>state.LastSuccess is {} date?date.ToLocalTime().ToString("dd.MM.yyyy HH:mm"):"Ещё не было";
  public UpdateCoordinator(UpdateService service,Func<AppSettings> settings,string? stateFile=null)

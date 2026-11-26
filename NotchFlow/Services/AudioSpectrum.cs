@@ -5,11 +5,14 @@ namespace NotchFlow.Services;
 
 public sealed record AudioFrame(float Rms,float Bass,float Mid,float Treble,float Peak,float Onset,float[] Bands)
 {
+    public float[] Floor {get;init;}=Array.Empty<float>();
     public static AudioFrame Combine(AudioFrame left,AudioFrame right)
     {
         var bands=new float[16];
         for(int i=0;i<bands.Length;i++)bands[i]=Math.Max(left.Bands[i],right.Bands[i]);
-        return new(Math.Max(left.Rms,right.Rms),Math.Max(left.Bass,right.Bass),Math.Max(left.Mid,right.Mid),Math.Max(left.Treble,right.Treble),Math.Max(left.Peak,right.Peak),Math.Max(left.Onset,right.Onset),bands);
+        var floor=left.Floor.Length==0?Array.Empty<float>():new float[Math.Min(left.Floor.Length,right.Floor.Length)];
+        for(int i=0;i<floor.Length;i++)floor[i]=Math.Max(left.Floor[i],right.Floor[i]);
+        return new(Math.Max(left.Rms,right.Rms),Math.Max(left.Bass,right.Bass),Math.Max(left.Mid,right.Mid),Math.Max(left.Treble,right.Treble),Math.Max(left.Peak,right.Peak),Math.Max(left.Onset,right.Onset),bands){Floor=floor};
     }
     public AudioFrame Decay()
     {
@@ -31,7 +34,7 @@ public sealed class AudioSpectrum
     int position;
     float reference=.08f,previousRms,peak;
     public AudioFrame Latest {get;private set;}=AudioFrame.Silent;
-    public void Add(float sample,int sampleRate,float sensitivity)
+    public void Add(float sample,int sampleRate,float sensitivity,bool detailed=true)
     {
         samples[position++]=float.IsFinite(sample)?Math.Clamp(sample,-1,1):0;
         if(position<Size)return;
@@ -61,6 +64,15 @@ public sealed class AudioSpectrum
             if(levels[band]<.001f)levels[band]=0;
         }
         float Average(int start,int end){float value=0;for(int i=start;i<end;i++)value+=levels[i];return value/(end-start);}
-        Latest=new(intensity,Average(0,5),Average(5,11),Average(11,16),peak,onset,(float[])levels.Clone());
+        // One non-overlapping bin range per column. Reserve at least one bin for each low band.
+        float[] floor=detailed?new float[64]:Array.Empty<float>();int start=Math.Max(1,(int)Math.Ceiling(40d*Size/sampleRate));
+        for(int i=0;i<floor.Length;i++){
+            int end=Math.Min(Size/2,Math.Max(start+1,(int)Math.Round(40*Math.Pow(400,(i+1)/64d)*Size/sampleRate)));
+            double power=0;
+            for(int bin=start;bin<end;bin++)power+=fft[bin].X*fft[bin].X+fft[bin].Y*fft[bin].Y;
+            floor[i]=rms<.0007f?0:(float)Math.Min(1,Math.Sqrt(power)*4/Math.Sqrt(reference));
+            start=end;
+        }
+        Latest=new(intensity,Average(0,5),Average(5,11),Average(11,16),peak,onset,(float[])levels.Clone()){Floor=floor};
     }
 }

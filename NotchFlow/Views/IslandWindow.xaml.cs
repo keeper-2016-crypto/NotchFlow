@@ -44,6 +44,8 @@ public partial class IslandWindow : Window
         Capsule.MouseLeave+=(_,_)=>GlassLayer.Hover(false);
         Capsule.AddHandler(UIElement.PreviewMouseDownEvent,new MouseButtonEventHandler((_,_)=>GlassLayer.Press()),true);
         EffectsLayer.Surface=Capsule;audioAnalysis.Changed+=EffectsLayer.AcceptAudio;
+        SmallRing.Attach(SmallArt,SmallImage,false);LargeRing.Attach(LargeArt,LargeImage,true);
+        audioAnalysis.Changed+=SmallRing.Accept;audioAnalysis.Changed+=LargeRing.Accept;
         interactions.Changed+=InteractionChanged;
         SystemVolume.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent,new MouseButtonEventHandler(BeginVolumeDrag),true);
         SystemVolume.PreviewMouseMove+=MoveVolumeDrag;
@@ -78,7 +80,7 @@ public partial class IslandWindow : Window
     }
     public void Apply(AppSettings value)
     {
-        settings = value; audioAnalysis.Configure(settings.AudioAnalysisEnabled,settings.AudioSensitivity); Capsule.IsNotch = settings.AttachToTop;
+        settings = value; audioAnalysis.Configure(settings.AudioAnalysisEnabled,settings.AudioSensitivity,settings.MediaVisualizer is "Spectrum Floor" or "Radial Pulse"); Capsule.IsNotch = settings.AttachToTop;
         double fittedScale = Math.Min(settings.Scale, WindowService.MaximumScale(settings, 440, 432));
         Width = 440 * fittedScale; Height = 432 * fittedScale;
         Capsule.LayoutTransform = new ScaleTransform(fittedScale, fittedScale);
@@ -100,14 +102,22 @@ public partial class IslandWindow : Window
     }
     int ContentHeight => (vm.SelectedTab switch { "Weather" => 320, "Notes" => 390, "Tasks" or "Files" => 350, "System"=>150, _ => 150 });
     int Duration => (!keyboardNotice || settings.KeyboardNotificationAnimations) && settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation ? settings.AnimationMs : 0;
+    double targetWidth=double.NaN;
     void Resize()
     {
-        Motion.To(Capsule, WidthProperty, (keyboardNotice ? 280 : showingToast ? 260 : expanded ? 400 : ShowSystemCompact ? 212 : vm.UseClock ? 176 : 212) + (settings.AttachToTop ? 20 : 0), Duration);
+        LayoutCompactMusic();
+        SetIslandWidth((keyboardNotice ? 280 : showingToast ? 260 : expanded ? 400 : ShowSystemCompact ? 212 : vm.UseClock ? 176 : MusicWidth) + (settings.AttachToTop ? 20 : 0), Duration);
         Motion.To(Capsule, HeightProperty, keyboardNotice ? 36 : showingToast ? 40 : expanded ? ContentHeight + (dragHintActive ? 34 : 0) : 36, Duration);
         var radius = new CornerRadius(expanded && !showingToast ? settings.CornerRadius : 18);
         if (Duration == 0) { Capsule.BeginAnimation(Border.CornerRadiusProperty, null); Capsule.CornerRadius = radius; }
         else Capsule.BeginAnimation(Border.CornerRadiusProperty, new CornerRadiusAnimation { From = Capsule.CornerRadius, To = radius, Duration = TimeSpan.FromMilliseconds(Duration) });
         UpdateClip();
+    }
+    void SetIslandWidth(double width,int duration)
+    {
+        if(targetWidth==width && duration>0)return;
+        targetWidth=width;
+        Motion.To(Capsule,WidthProperty,width,duration);
     }
     void CapsuleSizeChanged(object sender, SizeChangedEventArgs args) => UpdateClip();
     void UpdateClip()
@@ -252,6 +262,10 @@ public partial class IslandWindow : Window
     void MediaChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName is nameof(vm.UseClock) or nameof(vm.SelectedTab)) RenderState();
+        if(args.PropertyName is nameof(vm.Title) or nameof(vm.Artist) && settings.AdaptiveMusicWidth && !expanded && !showingToast && !keyboardNotice && !vm.UseClock){
+            LayoutCompactMusic();
+            SetIslandWidth(MusicWidth+(settings.AttachToTop?20:0),settings.AnimateMusicWidth && Duration>0?250:0);
+        }
         if (args.PropertyName == nameof(vm.Playing)) { UpdateActivity(); ConfigureMonitor(); }
         if (args.PropertyName == nameof(vm.Artwork)) UpdateAccent();
 
@@ -262,7 +276,7 @@ public partial class IslandWindow : Window
         var shelfTint = new SolidColorBrush(brush.Color) { Opacity = .24 };
         Resources["ShelfTint"] = shelfTint;
         DropZone.BorderBrush = brush;
-        AccentChanged?.Invoke(brush.Color);SystemPane.Accent=brush;KeyboardIcon.Stroke=brush;SystemCompactText.Foreground=brush;
+        SmallRing.UpdateColor(settings,vm.Artwork);LargeRing.UpdateColor(settings,vm.Artwork);AccentChanged?.Invoke(brush.Color);SystemPane.Accent=brush;KeyboardIcon.Stroke=brush;SystemCompactText.Foreground=brush;
         ArtistText.Foreground = brush; ElapsedText.Foreground=brush; RemainingText.Foreground=brush; SpeakerPath.Stroke=brush; ProgressWave.Accent = brush; PlayIcon.Fill=brush;
         GlassLayer.Configure(settings,vm.Artwork);
         EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !keyboardNotice && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
@@ -273,6 +287,11 @@ public partial class IslandWindow : Window
         if (ProgressWave == null) return;
         GlassLayer.Configure(settings,vm.Artwork);
         EffectsLayer.Configure(settings,vm.Artwork,expanded,vm.HasMediaSession && !keyboardNotice && !showingToast && (expanded ? vm.SelectedTab=="Music" : !vm.UseClock),vm.Playing);
+        bool radial=settings.MediaVisualizer=="Radial Pulse";
+        bool passive=!keyboardNotice&&!showingToast&&vm.HasMediaSession;
+        SmallRing.Configure(settings,vm.Artwork,radial&&settings.RadialMode!="Expanded",passive&&!expanded&&!vm.UseClock,vm.Playing);
+        LargeRing.Configure(settings,vm.Artwork,radial&&settings.RadialMode!="Compact",passive&&expanded&&vm.SelectedTab=="Music",vm.Playing);
+        AlbumBadge.Visibility=radial&&settings.RadialMode!="Compact"?Visibility.Collapsed:Visibility.Visible;
         Meter.Visibility=settings.MediaVisualizer=="Classic"?Visibility.Visible:Visibility.Collapsed;
         ProgressWave.SetMotion(vm.Playing && settings.Animations && !settings.ReduceMotion && SystemParameters.ClientAreaAnimation && settings.MediaVisualizer=="Classic" && expanded && !showingToast && vm.SelectedTab == "Music");
         int i = 0;
@@ -287,7 +306,7 @@ public partial class IslandWindow : Window
     protected override void OnClosing(CancelEventArgs e) { if(!vm.Personal.Flush()) { e.Cancel=true; MessageBox.Show(this, vm.Personal.Status + "\nПовторите сохранение перед выходом.", "NotchFlow"); } base.OnClosing(e); }
     protected override void OnClosed(EventArgs e)
     {
-        closing = true;DisposeFeatures();LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
+        closing = true;DisposeFeatures();LayoutUpdated-=BackdropLayout;IsVisibleChanged-=BackdropVisibility;nativeBackdrop?.Dispose();nativeBackdrop=null;audioAnalysis.Changed-=SmallRing.Accept;audioAnalysis.Changed-=LargeRing.Accept;SmallRing.Stop();LargeRing.Stop();audioAnalysis.Changed-=EffectsLayer.AcceptAudio;audioAnalysis.Dispose(); interactions.Changed-=InteractionChanged; interactions.Clear(); if(mediaSourceMenu!=null)mediaSourceMenu.IsOpen=false; IsMediaSourceSelectorOpen=false; hover.Stop(); collapse.Stop(); toastTimer.Stop(); ProgressWave.SetMotion(false);
         if (volume != null) volume.StateChanged -= VolumeStateChanged;
         vm.PropertyChanged -= MediaChanged; SystemEvents.DisplaySettingsChanged -= DisplayChanged;
         vm.Dispose(); base.OnClosed(e);

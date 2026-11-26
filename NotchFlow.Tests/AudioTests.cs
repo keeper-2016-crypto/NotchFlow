@@ -8,6 +8,30 @@ internal static class AudioTests
         for(int i=0;i<48000;i++)processor.Add(amplitude*(float)Math.Sin(2*Math.PI*frequency*i/48000),48000,1);
         return processor.Latest;
     }
+    public static void FloorTests(){
+        var effects=new NotchFlow.Controls.MediaEffects{Width=360,Height=150,Surface=new NotchFlow.Controls.IslandSurface()};
+        var window=new System.Windows.Window{Content=effects,SizeToContent=System.Windows.SizeToContent.WidthAndHeight,ShowActivated=false,ShowInTaskbar=false,WindowStyle=System.Windows.WindowStyle.None};
+        window.Show();
+        try{
+            var settings=new NotchFlow.Configuration.AppSettings{MediaVisualizer="Spectrum Floor",AudioAnalysisEnabled=true};
+            effects.Configure(settings,null,true,true,true);
+            effects.AcceptAudio(Tone(1000));
+            Check(!effects.IsHitTestVisible,"Floor leaves pointer input to player");
+            effects.Configure(settings,null,true,false,true);
+            Check(!effects.IsAnimating,"Floor is inactive outside music tab");
+            effects.Configure(settings,null,true,true,false);
+            Check(!effects.IsAnimating,"Paused floor stops following incoming audio");
+        }finally{window.Close();}
+        int Peak(double hz){var data=Tone(hz).Floor;return Array.IndexOf(data,data.Max());}
+        Check(Peak(100)<Peak(1000)&&Peak(1000)<Peak(8000),"Floor FFT orders bass, midrange and treble");
+        Check(Tone(1000,.012f).Floor.Max()<Tone(1000,.08f).Floor.Max(),"Floor amplitude follows input gain");
+        Check(Tone(1000,0).Floor.All(x=>x==0),"Floor has no silent baseline");
+        var directory=System.IO.Path.Combine(System.IO.Path.GetTempPath(),Guid.NewGuid().ToString());
+        try{
+            var store=new SettingsStore(directory);store.Save(new(){MediaVisualizer="Spectrum Floor",FloorCompact=true,FloorBars=48,FloorWidth=1,FloorColor="Custom",FloorHex="#BB4433"});
+            var s=store.Load();Check(s.MediaVisualizer=="Spectrum Floor"&&s.FloorCompact&&s.FloorBars==48&&s.FloorWidth==20&&s.FloorHex=="#BB4433","Floor settings persist and clamp");
+        }finally{if(System.IO.Directory.Exists(directory))System.IO.Directory.Delete(directory,true);}
+    }
     public static void Run()
     {
         var positive=Tone(100,.08f);var negative=Tone(100,-.08f);

@@ -17,14 +17,14 @@ public sealed class AudioAnalysisService : IDisposable
     AudioFrame latest=AudioFrame.Silent;
     DateTime lastBuffer=DateTime.MinValue,lastDeviceCheck=DateTime.MinValue;
     float sensitivity=1;
-    bool enabled,disposed;
+    bool enabled,disposed,detailed;
     AudioFrame delivered=AudioFrame.Silent;
     public string Status {get;private set;}="Audio analysis off";
     public event Action<AudioFrame>? Changed;
     public AudioAnalysisService(){timer.Tick+=Tick;}
-    public void Configure(bool value,double gain)
+    public void Configure(bool value,double gain,bool spectrumFloor=false)
     {
-        lock(gate)sensitivity=(float)gain;
+        lock(gate){sensitivity=(float)gain;detailed=spectrumFloor;}
         if(disposed||enabled==value)return;
         enabled=value;
         if(value){lastDeviceCheck=DateTime.MinValue;timer.Start();Tick(null,EventArgs.Empty);}
@@ -66,8 +66,8 @@ public sealed class AudioAnalysisService : IDisposable
             var previous=leftSpectrum.Latest;
             for(int offset=0;offset+8<=e.BytesRecorded;offset+=8)
             {
-                leftSpectrum.Add(BitConverter.ToSingle(e.Buffer,offset),48000,sensitivity);
-                rightSpectrum.Add(BitConverter.ToSingle(e.Buffer,offset+4),48000,sensitivity);
+                leftSpectrum.Add(BitConverter.ToSingle(e.Buffer,offset),48000,sensitivity,detailed);
+                rightSpectrum.Add(BitConverter.ToSingle(e.Buffer,offset+4),48000,sensitivity,detailed);
             }
             if(!ReferenceEquals(previous,leftSpectrum.Latest))latest=AudioFrame.Combine(leftSpectrum.Latest,rightSpectrum.Latest);
             lastBuffer=DateTime.UtcNow;

@@ -317,6 +317,14 @@
 <CheckBox IsChecked="{Binding AttachToTop, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}">
 <TextBlock Text="Форма Notch — у верхней кромки" TextWrapping="Wrap"/>
 </CheckBox>
+<CheckBox x:Name="AdaptiveWidthToggle" Content="Адаптивная ширина компактного плеера" IsChecked="{Binding AdaptiveMusicWidth}"/>
+<StackPanel IsEnabled="{Binding IsChecked, ElementName=AdaptiveWidthToggle}">
+<TextBlock Text="{Binding MinimumMusicWidth, StringFormat='Минимальная ширина · {0}'}"/>
+<Slider Minimum="80" Maximum="240" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding MinimumMusicWidth}"/>
+<TextBlock Text="{Binding MaximumMusicWidth, StringFormat='Максимальная ширина · {0}'}"/>
+<Slider Minimum="180" Maximum="400" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding MaximumMusicWidth}"/>
+<CheckBox Content="Плавное изменение ширины" IsChecked="{Binding AnimateMusicWidth}"/>
+</StackPanel>
 <TextBlock Text="Масштаб острова" TextWrapping="Wrap"/>
 <Slider x:Name="ScaleSlider" Minimum="0.8" Maximum="1.8" Value="{Binding Scale, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"/>
 <TextBlock Text="{Binding Value, ElementName=ScaleSlider, StringFormat={}{0:0.##}}" Foreground="#A1A1AA" FontSize="11" Margin="0,0,0,8"/>
@@ -357,8 +365,26 @@
 
 
 <ComboBoxItem Tag="Equalizer" Content="Эквалайзер"/>
+<ComboBoxItem Tag="Radial Pulse" Content="Radial Pulse"/>
+<ComboBoxItem Tag="Spectrum Floor" Content="Spectrum Floor"/>
 
 </ComboBox>
+<StackPanel><StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding SelectedValue, ElementName=MediaVisualizerBox}" Value="Spectrum Floor"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></StackPanel.Style><TextBlock Text="Чувствительность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding FloorSensitivity}"/>
+<TextBlock Text="Плавность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding FloorSmooth}"/>
+<TextBlock Text="Непрозрачность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding FloorOpacity}"/>
+<TextBlock Text="Максимальная высота, %"/><Slider Minimum="10" Maximum="100" Value="{Binding FloorHeight}"/>
+<TextBlock Text="Свечение, %"/><Slider Minimum="0" Maximum="100" Value="{Binding FloorGlow}"/>
+<TextBlock Text="Ширина столбиков, %"/><Slider Minimum="20" Maximum="100" Value="{Binding FloorWidth}"/>
+<TextBlock Text="Количество столбиков"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding FloorBars}"><ComboBoxItem Tag="0" Content="Авто"/><ComboBoxItem Tag="16" Content="16"/><ComboBoxItem Tag="24" Content="24"/><ComboBoxItem Tag="32" Content="32"/><ComboBoxItem Tag="48" Content="48"/><ComboBoxItem Tag="64" Content="64"/></ComboBox><TextBlock Text="Источник цвета"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding FloorColor}"><ComboBoxItem Tag="Accent" Content="Акцент"/><ComboBoxItem Tag="Album" Content="Обложка"/><ComboBoxItem Tag="Custom" Content="Свой цвет"/></ComboBox><local:ColorField Value="{Binding FloorHex, Mode=TwoWay}"/><CheckBox Content="Показывать также в компактном острове" IsChecked="{Binding FloorCompact}"/><Button Content="Сбросить настройки Spectrum Floor" Click="ResetFloorClick"/></StackPanel>
+<StackPanel><StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding SelectedValue, ElementName=MediaVisualizerBox}" Value="Radial Pulse"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></StackPanel.Style><TextBlock Text="Чувствительность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding RadialSensitivity}"/>
+<TextBlock Text="Плавность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding RadialSmooth}"/>
+<TextBlock Text="Непрозрачность, %"/><Slider Minimum="0" Maximum="100" Value="{Binding RadialOpacity}"/>
+<TextBlock Text="Длина сегментов, %"/><Slider Minimum="10" Maximum="100" Value="{Binding RadialLength}"/>
+<TextBlock Text="Толщина сегментов"/><Slider Minimum="0.5" Maximum="3" Value="{Binding RadialThickness}"/>
+<TextBlock Text="Свечение, %"/><Slider Minimum="0" Maximum="100" Value="{Binding RadialGlow}"/>
+<TextBlock Text="Отступ от обложки"/><Slider Minimum="1" Maximum="8" Value="{Binding RadialGap}"/>
+<TextBlock Text="Пульсация обложки, %"/><Slider Minimum="0" Maximum="100" Value="{Binding RadialBassAmount}"/>
+<TextBlock Text="Количество сегментов"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding RadialSegments}"><ComboBoxItem Tag="0" Content="Авто"/><ComboBoxItem Tag="24" Content="24"/><ComboBoxItem Tag="32" Content="32"/><ComboBoxItem Tag="48" Content="48"/><ComboBoxItem Tag="64" Content="64"/></ComboBox><TextBlock Text="Источник цвета"/><ComboBox x:Name="RadialSource" SelectedValuePath="Tag" SelectedValue="{Binding RadialColor}"><ComboBoxItem Tag="Palette" Content="Палитра обложки"/><ComboBoxItem Tag="Accent" Content="Акцент"/><ComboBoxItem Tag="Album" Content="Обложка"/><ComboBoxItem Tag="Custom" Content="Свой цвет"/></ComboBox><StackPanel><StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding SelectedValue, ElementName=RadialSource}" Value="Palette"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></StackPanel.Style><TextBlock Text="Распределение палитры"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding RadialDistribution}"><ComboBoxItem Tag="Alternate" Content="Чередование"/><ComboBoxItem Tag="Gradient" Content="Круговой градиент"/><ComboBoxItem Tag="Zones" Content="Частотные зоны"/></ComboBox><TextBlock Text="Количество цветов"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding RadialColors}"><ComboBoxItem Tag="0" Content="Авто"/><ComboBoxItem Tag="2" Content="2"/><ComboBoxItem Tag="3" Content="3"/><ComboBoxItem Tag="4" Content="4"/><ComboBoxItem Tag="5" Content="5"/></ComboBox><TextBlock Text="Насыщенность палитры"/><Slider Minimum="0" Maximum="160" Value="{Binding RadialSaturation}"/></StackPanel><TextBlock Text="Отображение"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding RadialMode}"><ComboBoxItem Tag="Both" Content="Оба режима"/><ComboBoxItem Tag="Compact" Content="Компактный"/><ComboBoxItem Tag="Expanded" Content="Раскрытый"/></ComboBox><local:ColorField Value="{Binding RadialHex, Mode=TwoWay}"/><CheckBox Content="Зеркальное распределение частот" IsChecked="{Binding RadialMirror}"/><CheckBox Content="Пульсация обложки в такт басам" IsChecked="{Binding RadialBass}"/><Button Content="Сбросить настройки Radial Pulse" Click="ResetRadialClick"/></StackPanel>
 <CheckBox x:Name="AudioAnalysisBox" IsChecked="{Binding AudioAnalysisEnabled, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}">
 <TextBlock Text="Анализировать системный звук" TextWrapping="Wrap"/>
 </CheckBox>

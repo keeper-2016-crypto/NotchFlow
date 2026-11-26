@@ -18,6 +18,50 @@ public partial class IslandWindow
  readonly object incomingDrag=new();
  bool keyboardNotice,shelfStarted;
  bool ShowMusicMetrics => settings.SystemMonitorEnabled && !expanded && !vm.UseClock && !showingToast && !keyboardNotice && (settings.MonitorCpu || settings.MonitorGpu || settings.MonitorRam);
+ int MetricCount => (settings.MonitorCpu?1:0)+(settings.MonitorGpu?1:0)+(settings.MonitorRam?1:0);
+ double MetricsWidth => ShowMusicMetrics ? 12+27*MetricCount : 0;
+ double MusicWidth {get;set;}=212;
+ (string Title,string Artist,double Dpi)? measured;
+ double textWidth;
+ void LayoutCompactMusic()
+ {
+  double metrics=MetricsWidth;
+  int visual=settings.MediaVisualizer switch {"Classic"=>21,"Equalizer"=>51,_=>0};
+  bool radial=settings.MediaVisualizer=="Radial Pulse" && settings.RadialMode!="Expanded";
+  double left=radial?39:35;
+  double right=12+metrics+(visual>0?visual+5:0);
+  if(settings.AdaptiveMusicWidth){
+   double dpi=System.Windows.Media.VisualTreeHelper.GetDpi(this).PixelsPerDip;
+   var key=(vm.Title,vm.Artist,dpi);
+   if(measured!=key){
+    double Measure(string text,System.Windows.Controls.TextBlock label)=>new System.Windows.Media.FormattedText(
+     text,label.Language.GetSpecificCulture(),label.FlowDirection,
+     new System.Windows.Media.Typeface(label.FontFamily,label.FontStyle,label.FontWeight,label.FontStretch),
+     label.FontSize,label.Foreground,dpi).WidthIncludingTrailingWhitespace;
+    textWidth=Math.Ceiling(Math.Max(Measure(vm.Title,CompactTitle),Measure(vm.Artist,CompactArtist)))+2;
+    measured=key;
+   }
+   double minimum=Math.Max(settings.MinimumMusicWidth,left+right+18);
+   MusicWidth=Math.Clamp(left+textWidth+right,minimum,Math.Max(minimum,settings.MaximumMusicWidth));
+   Compact.HorizontalAlignment=HorizontalAlignment.Stretch;
+   Compact.Width=double.NaN;
+   double inset=settings.AttachToTop?10:0;
+   Compact.Margin=new Thickness(inset,0,inset,0);
+   CompactTrack.HorizontalAlignment=HorizontalAlignment.Stretch;
+   CompactTrack.Margin=new Thickness(left,0,right,0);
+   CompactTrack.Width=double.NaN;
+  }else{
+   MusicWidth=212+metrics;
+   Compact.HorizontalAlignment=HorizontalAlignment.Center;
+   Compact.Margin=new Thickness(0);
+   Compact.Width=MusicWidth;
+   CompactTrack.HorizontalAlignment=HorizontalAlignment.Left;
+   CompactTrack.Margin=new Thickness(39,0,0,0);
+   CompactTrack.Width=settings.MediaVisualizer is "Spectrum Floor" or "Radial Pulse"?160:settings.MediaVisualizer=="Classic"?138:108;
+  }
+  Meter.Margin=new Thickness(0,0,12+metrics,0);
+  EffectsLayer.CompactMetricsWidth=metrics+(settings.AdaptiveMusicWidth&&settings.AttachToTop?10:0);
+ }
  void UpdateMusicMetrics(){
   MiniCpu.Visibility=settings.MonitorCpu ? Visibility.Visible : Visibility.Collapsed;
   MiniCpuValue.Text=monitorModel.CpuText.Replace("Недоступно","—");

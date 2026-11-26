@@ -10,7 +10,10 @@ using NotchFlow.Views;
 
 internal static class Program
 {
- [STAThread] static int Main() {
+ [STAThread] static int Main(string[] args) {
+  if(args.SequenceEqual(new[]{"--radial-pulse"})){RadialPulseTests.Run();return 0;}
+  if(args.SequenceEqual(new[]{"--music-system"})){MusicSystemTests.Run();return 0;}
+  if(args.SequenceEqual(new[]{"--spectrum-floor"})){AudioTests.Run();AudioTests.FloorTests();return 0;}
   if(Environment.GetEnvironmentVariable("NOTCHFLOW_VERIFY_UPDATE_SERVER")=="1"){
    using var check=new UpdateService();try{var result=check.CheckAsync(default).GetAwaiter().GetResult();Console.WriteLine(result==null?"No newer signed update":"New signed update; no download or installation performed");return 0;}catch(UpdateSecurityException ex){Console.WriteLine("REJECTED: "+ex.Message);return 0;}
   }

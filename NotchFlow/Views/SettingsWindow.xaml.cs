@@ -43,6 +43,13 @@ public partial class SettingsWindow : Window
  }
  public sealed record MonitorOption(string Id,string Label);
  static bool HasErrors(DependencyObject parent) {if(Validation.GetHasError(parent))return true;foreach(var child in LogicalTreeHelper.GetChildren(parent)){if(child is DependencyObject dependency && HasErrors(dependency))return true;}for(int i=0;i<(parent is Visual ? VisualTreeHelper.GetChildrenCount(parent) : 0);i++)if(HasErrors(VisualTreeHelper.GetChild(parent,i)))return true;return false;}
+ void ResetFloorClick(object sender,RoutedEventArgs e)=>ResetVisualizer("Floor");
+ void ResetRadialClick(object sender,RoutedEventArgs e)=>ResetVisualizer("Radial");
+ void ResetVisualizer(string prefix){
+  var defaults=new AppSettings();
+  foreach(var property in typeof(AppSettings).GetProperties())if(property.Name.StartsWith(prefix,StringComparison.Ordinal))property.SetValue(draft,property.GetValue(defaults));
+  DataContext=null;DataContext=draft;
+ }
  void ResetAppearanceClick(object sender,RoutedEventArgs e)
  {
   var defaults=new AppSettings();
